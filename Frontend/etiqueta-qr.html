@@ -451,7 +451,7 @@ async function cargarEtiqueta() {
 
         // QR
         const qrURL =
-            `${window.location.origin}/Frontend/kiosko.html?id=${e.id}`;
+            `${window.location.origin}/kiosko.html?id=${e.id}`;
 
         new QRCode(document.getElementById("qrcode"), {
             text: qrURL,
