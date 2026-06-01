@@ -231,8 +231,8 @@
             btn.innerText = "Sincronizando...";
 
             try {
-                // Ajusta la URL según donde corra tu FastAPI (ej: http://127.0.0.1:8000)
-                const response = await fetch('http://127.0.0.1:8000/api/registro', {
+                
+                const response = await fetch('https://labasset360.onrender.com/api/registro', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)

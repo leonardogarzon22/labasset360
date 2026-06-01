@@ -415,7 +415,7 @@
 
             <script>
 
-                const API_URL = "http://127.0.0.1:8000";
+                const API_URL = "https://labasset360.onrender.com";
                 const urlParams = new URLSearchParams(window.location.search);
                 const equipoId = urlParams.get('id');
                 let tipoEquipoId = null;
@@ -1260,7 +1260,7 @@ oninput="evaluarManual(${p.id})"
 
                 async function cargarHistorialFallas(equipoId) {
                     try {
-                        const res = await fetch(`http://127.0.0.1:8000/api/equipos/${equipoId}/fallas`);
+                        const res = await fetch(`${API_URL}/api/equipos/${equipoId}/fallas`);
                         if (!res.ok) throw new Error("Error al cargar historial");
 
                         const fallas = await res.json();

@@ -251,10 +251,10 @@
     </div>
 
     <script>
-        // La lógica de JavaScript se mantiene igual
-        const API = "http://127.0.0.1:8000";
+        
+        const API = "https://labasset360.onrender.com";
         const params = new URLSearchParams(window.location.search);
-        // Nota: para pruebas locales sin backend, puedes hardcodear un UUID aquí o usar el fallback
+        
         const equipoId = params.get("id") || "51bd4455-dc65-4326-a434-375449fb6e49";
 
         async function cargarEquipo() {
@@ -350,10 +350,10 @@
     <div id="voice-indicator"
         style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
         onclick="VoiceEngine.toggle()">
-        <!-- Imagen por defecto (Desactivado) -->
+        
         <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
             style="width: 110px; height: 110px; object-fit: contain;">
-        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        
         <img src="activado.png" class="icon-on" alt="Micrófono Activado"
             style="width: 110px; height: 110px; object-fit: contain; display: none;">
     </div>
