@@ -1,7 +1,5 @@
 // js/voice-kiosko.js
 
-document.addEventListener('DOMContentLoaded', () => {
-
     const comandosKiosko = [
         // ==========================================
         // 1. SOLICITUD DE PRÉSTAMOS
@@ -99,5 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Registro en el núcleo de procesamiento de voz
     if (window.VoiceEngine && typeof VoiceEngine.registerCommands === 'function') {
         VoiceEngine.registerCommands(comandosKiosko);
+    } else {
+        console.error("Sienna no estaba lista para recibir los comandos del kiosko");
     }
-});
