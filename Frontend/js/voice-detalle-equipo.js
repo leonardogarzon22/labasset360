@@ -5,13 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Función auxiliar para parsear fechas dictadas de forma natural
     function parseSpokenDate(spokenText) {
         const meses = {
-            'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04', 
-            'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08', 
+            'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+            'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
             'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
         };
         const cleanText = spokenText.toLowerCase().replace(/ del /g, ' de ');
         const match = cleanText.match(/(\d+)\s+de\s+([a-z]+)\s+de\s+(\d+)/);
-        
+
         if (match) {
             let dia = match[1].padStart(2, '0');
             let mes = meses[match[2]];
@@ -233,10 +233,28 @@ document.addEventListener('DOMContentLoaded', () => {
             regex: /^(?:prueba |parámetro |parametro )?(.+?)\s+(valor obtenido|valor|tipo de criterio|criterio|valor mínimo|valor minimo|mínimo|minimo|valor máximo|valor maximo|máximo|maximo)\s+(.+)/i,
             action: (match) => {
                 const nombrePruebaHablada = match[1].toLowerCase().trim();
-                // Consolidamos el texto restante para extraer las variables sin importar el orden del dictado
-                const restoTexto = (match[2] + " " + match[3]).toLowerCase().trim();
+                let restoTexto = (match[2] + " " + match[3]).toLowerCase().trim();
 
-                // Expresiones regulares internas para extracción semántica aditiva
+                // -----------------------------------------------------------------
+                // TRADUCTOR NUMÉRICO LOCAL: Convierte palabras de texto a dígitos reales
+                // -----------------------------------------------------------------
+                const mapaNumeros = {
+                    'cero': '0', 'uno': '1', 'dos': '2', 'tres': '3', 'cuatro': '4',
+                    'cinco': '5', 'seis': '6', 'siete': '7', 'ocho': '8', 'nueve': '9'
+                };
+
+                // Reemplazar palabras escritas por sus dígitos individuales
+                for (const [palabra, digito] of Object.entries(mapaNumeros)) {
+                    restoTexto = restoTexto.replace(new RegExp(`\\b${palabra}\\b`, 'g'), digito);
+                }
+
+                // Soporte para decimales si dicen por ejemplo: "dos punto cinco" -> "2.5"
+                restoTexto = restoTexto.replace(/\bpunto\b/g, '.');
+                restoTexto = restoTexto.replace(/\s*([\.])\s*/g, '$1'); // Compacta espacios alrededor del punto
+
+                // -----------------------------------------------------------------
+                // EXPRESIONES INTERNAS (Ahora sí recibirán dígitos como "2" o "2.5")
+                // -----------------------------------------------------------------
                 const rxValor = /(?:valor obtenido|valor)\s+([\d\.]+)/i;
                 const rxCriterio = /(?:tipo de criterio|criterio)\s+(rango|máximo|maximo|mínimo|minimo|igual a|igual)/i;
                 const rxMin = /(?:valor mínimo|valor minimo|mínimo|minimo)\s+([\d\.]+)/i;
@@ -261,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 let encontrado = false;
-                // Escaneo directo del DOM real del usuario utilizando la clase contenedora '.field'
+                // Escaneo directo del DOM real
                 const items = document.querySelectorAll('#lista-parametros .field');
 
                 items.forEach(item => {
@@ -269,46 +287,56 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (labelB && labelB.innerText.toLowerCase().includes(nombrePruebaHablada)) {
                         encontrado = true;
 
-                        // Localizamos el input de valor para aislar el ID dinámico numérico de la prueba actual
+                        // Localizamos el input de valor para aislar el ID dinámico numérico
                         const inputValorBase = item.querySelector('input[id^="valor_"]');
                         if (!inputValorBase) return;
                         const idPrueba = inputValorBase.id.replace('valor_', '');
 
-                        // Llenado dinámico y condicional de campos mapeando tu estructura de IDs reales
+                        // Llenado dinámico y condicional disparando eventos nativos del navegador
                         if (valObtenido !== null) {
                             inputValorBase.value = valObtenido;
+                            inputValorBase.dispatchEvent(new Event('input', { bubbles: true }));
                         }
                         if (criterioHablado !== null) {
                             const selCriterio = document.getElementById(`tipo_${idPrueba}`);
-                            if (selCriterio) selCriterio.value = criterioHablado;
+                            if (selCriterio) {
+                                selCriterio.value = criterioHablado;
+                                selCriterio.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
                         }
                         if (valMin !== null) {
                             const inputMin = document.getElementById(`min_${idPrueba}`);
-                            if (inputMin) inputMin.value = valMin;
+                            if (inputMin) {
+                                inputMin.value = valMin;
+                                inputMin.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
                         }
                         if (valMax !== null) {
                             const inputMax = document.getElementById(`max_${idPrueba}`);
-                            if (inputMax) inputMax.value = valMax;
+                            if (inputMax) {
+                                inputMax.value = valMax;
+                                inputMax.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
                         }
 
-                        // Ejecución inmediata de tu lógica de cálculo nativa para recalcular el cumplimiento visual
+                        // Ejecución de tu lógica de cálculo nativa para recalcular el cumplimiento visual
                         if (typeof evaluarManual === 'function') {
                             evaluarManual(idPrueba);
                         }
 
-                        VoiceEngine.feedback(`Parámetro ${labelB.innerText} actualizado.`);
+                        window.VoiceEngine.feedback(`Parámetro ${labelB.innerText} actualizado.`);
                     }
                 });
 
                 if (!encontrado) {
-                    VoiceEngine.feedback(`No encontré la prueba ${nombrePruebaHablada} en la lista.`);
+                    window.VoiceEngine.feedback(`No encontré la prueba ${nombrePruebaHablada} en la lista.`);
                 }
             }
         },
         {
             regex: /^guardar confirmación|^guardar confirmacion/i,
             action: () => {
-                VoiceEngine.feedback("Evaluando y guardando aptitud del equipo.");
+                window.VoiceEngine.feedback("Evaluando y guardando aptitud del equipo.");
                 guardarAptitud();
             }
         },
@@ -316,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             regex: /^editar (resultados|confirmación)/i,
             action: () => {
                 activarEdicion();
-                VoiceEngine.feedback("Modo edición de aptitud activado.");
+                window.VoiceEngine.feedback("Modo edición de aptitud activado.");
             }
         },
 
