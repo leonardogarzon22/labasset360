@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LabAsset 360 - Gestión de Ubicaciones</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar-historial {
+            width: 380px;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e0e6ed;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #243B8F, #1C2C70);
+            color: white;
+        }
+
+        .busqueda-container {
+            padding: 20px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .busqueda-container input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 12px;
+            background: #243B8F;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .btn-save {
+            background: #27ae60;
+        }
+
+        .btn-save:hover {
+            background: #219150;
+        }
+
+        .historial-seccion {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .item-historial {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid #243B8F;
+            cursor: pointer;
+        }
+
+        .btn-ruta {
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: none;
+            border: 1px solid #243B8F;
+            color: #243B8F;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #map {
+            flex: 1;
+        }
+
+        #status-busqueda {
+            font-size: 0.8rem;
+            color: #d84315;
+            margin-bottom: 10px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="sidebar-historial">
+        <div class="sidebar-header">
+            <h2>LabAsset 360</h2>
+            <p>Localización de Activos</p>
+        </div>
+
+        <div class="busqueda-container">
+            <h3>📍 Registrar Ubicación</h3>
+            <input type="text" id="nombre_cliente" placeholder="Nombre (Ej: SGI SAS / DAPHNIA LTDA)">
+            <input type="text" id="busqueda" placeholder="Dirección (Ej: Calle 153A # 7H-72)">
+
+            <div id="status-busqueda" style="color: #d84315; font-size: 0.8rem; margin-bottom: 10px; display: none;">
+            </div>
+
+            <button class="btn-main" style="background: #5c6bc0;" onclick="usarUbicacionActual()">🛰️ Mi ubicación
+                actual</button>
+
+            <button class="btn-main" onclick="buscarDireccionInteligente()">🔍 Buscar en Mapa</button>
+            <button class="btn-main btn-save" onclick="guardarEnServidor()">📌 Confirmar y Registrar</button>
+        </div>
+
+        <div class="historial-seccion">
+            <h3>🕒 Historial</h3>
+            <div id="listaHistorial"></div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        let map;
+        let marcador;
+        let rutaLayer;
+        let coordenadaActual = null;
+        let nombreDireccionOriginal = "";
+
+
+        function initMap() {
+            map = L.map('map').setView([4.7110, -74.0721], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            cargarHistorial();
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const equipoId = urlParams.get('id');
+
+        // Búsqueda Inteligente: Si no halla el número, busca la calle
+        async function buscarDireccionInteligente() {
+            let direccionOriginal = document.getElementById("busqueda").value;
+            let status = document.getElementById("status-busqueda");
+            status.style.display = "none";
+
+            if (!direccionOriginal) return alert("Por favor, escribe una dirección.");
+
+            // Función interna para intentar buscar y posicionar
+            async function intentarBusqueda(texto) {
+                // Añadimos ", Bogotá, Colombia" para centrar la búsqueda si el usuario no lo puso
+                let query = texto;
+                if (!query.toLowerCase().includes("bogota")) query += ", Bogotá, Colombia";
+
+                return await fetchNominatim(query);
+            }
+
+            // 1. Primer intento: Dirección exacta tal cual la escribió el usuario
+            let data = await intentarBusqueda(direccionOriginal);
+
+            // 2. Segundo intento (Robustez): Si falla y tiene el símbolo #
+            if (data.length === 0 && direccionOriginal.includes("#")) {
+                status.innerText = "Buscando aproximación de la vía principal...";
+                status.style.display = "block";
+
+                // Ejemplo: "Cra. 32b #22b-29" -> busca "Cra. 32b con 22b" o solo la vía
+                let simplificada = direccionOriginal.split("#")[0].trim();
+                data = await intentarBusqueda(simplificada);
+            }
+
+            // 3. Tercer intento: Limpiar caracteres especiales que confunden a Nominatim
+            if (data.length === 0) {
+                let limpia = direccionOriginal.replace(/[#\-]/g, ' '); // Cambia # y - por espacios
+                data = await intentarBusqueda(limia);
+            }
+
+            if (data.length > 0) {
+                let lat = parseFloat(data[0].lat);
+                let lon = parseFloat(data[0].lon);
+
+                // --- NUEVA LÓGICA DE ROBUSTEZ ---
+                coordenadaActual = { lat, lon };
+                map.setView([lat, lon], 18); // Zoom más profundo para precisión
+
+                if (marcador) map.removeLayer(marcador);
+
+                // Crear marcador ARRASTRABLE para que el usuario corrija el error del mapa
+                marcador = L.marker([lat, lon], {
+                    draggable: true,
+                    autoPan: true
+                }).addTo(map);
+
+                marcador.bindPopup(`
+            <div style="text-align:center">
+                <b>Ubicación Encontrada</b><br>
+                ${direccionOriginal}<br>
+                <small style="color:blue;">¡Si no es exacto, arrastra este marcador hasta la puerta!</small>
+            </div>
+        `).openPopup();
+
+                // Evento para actualizar la coordenada cuando el usuario mueva el pin manualmente
+                marcador.on('dragend', function (event) {
+                    let posicion = marcador.getLatLng();
+                    coordenadaActual = { lat: posicion.lat, lon: posicion.lng };
+                    status.innerText = "📍 Coordenada ajustada manualmente";
+                    status.style.display = "block";
+                });
+
+            } else {
+                status.innerText = "No se halló la dirección. Usa el botón 'Mi ubicación' o busca una calle principal cercana.";
+                status.style.display = "block";
+                alert("No pudimos encontrar el punto exacto. Prueba buscando la calle principal (ej: Carrera 32b) y mueve el marcador manualmente.");
+            }
+        }
+        async function guardarEnServidor() {
+            const nombrePerso = document.getElementById("nombre_cliente").value;
+            const direccionText = document.getElementById("busqueda").value;
+
+            if (!equipoId) return alert("Error: No se detectó ID de equipo.");
+            if (!nombrePerso || !coordenadaActual) return alert("Completa el nombre y busca la ubicación en el mapa.");
+
+            const payload = {
+                nombre_personalizado: nombrePerso,
+                direccion_texto: direccionText,
+                latitud: coordenadaActual.lat,
+                longitud: coordenadaActual.lon
+            };
+
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/api/equipos/${equipoId}/ubicacion`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    alert("✅ Ubicación registrada exitosamente en el servidor");
+                    window.location.href = `detalle-equipo.html?id=${equipoId}`;
+                } else {
+                    alert("Error al guardar en el servidor");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("No se pudo conectar con el servidor.");
+            }
+        }
+
+        async function fetchNominatim(query) {
+            let res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+            return await res.json();
+        }
+
+
+        async function cargarHistorial() {
+
+            if (!equipoId) return;
+
+            try {
+
+                const res = await fetch(`http://127.0.0.1:8000/api/equipos/${equipoId}/ubicaciones`);
+                const historial = await res.json();
+
+                let contenedor = document.getElementById("listaHistorial");
+                contenedor.innerHTML = "";
+
+                historial.forEach((ub) => {
+
+                    let div = document.createElement("div");
+                    div.className = "item-historial";
+
+                    div.innerHTML = `
+                <h4>${ub.nombre_personalizado}</h4>
+                <small>${ub.direccion_texto}</small><br>
+                <small>${new Date(ub.fecha_registro).toLocaleString()}</small><br>
+                <button class="btn-ruta"
+                    onclick="event.stopPropagation(); dibujarRuta(${ub.latitud}, ${ub.longitud})">
+                    📍 Cómo llegar
+                </button>
+            `;
+
+                    div.onclick = () => {
+                        map.setView([ub.latitud, ub.longitud], 17);
+                        if (marcador) map.removeLayer(marcador);
+                        marcador = L.marker([ub.latitud, ub.longitud]).addTo(map);
+                    };
+
+                    contenedor.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error("Error cargando historial:", error);
+            }
+        }
+
+
+        async function dibujarRuta(destLat, destLon) {
+            if (!navigator.geolocation) return alert("GPS no disponible");
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                let start = `${pos.coords.longitude},${pos.coords.latitude}`;
+                let end = `${destLon},${destLat}`;
+
+                let res = await fetch(`https://router.project-osrm.org/route/v1/driving/${start};${end}?overview=full&geometries=geojson`);
+                let data = await res.json();
+
+                if (rutaLayer) map.removeLayer(rutaLayer);
+                rutaLayer = L.geoJSON(data.routes[0].geometry, { style: { color: '#243B8F', weight: 6 } }).addTo(map);
+                map.fitBounds(rutaLayer.getBounds(), { padding: [50, 50] });
+            });
+        }
+
+        window.onload = initMap;
+
+        async function usarUbicacionActual() {
+            let status = document.getElementById("status-busqueda");
+            if (!navigator.geolocation) return alert("Tu navegador no soporta geolocalización.");
+
+            status.innerText = "Obteniendo coordenadas de alta precisión...";
+            status.style.display = "block";
+
+            // Configuramos ALTA PRECISIÓN para evitar que te mande al Oxxo
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            };
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+                actualizarPuntoEnMapa(lat, lon, "Tu posición GPS");
+
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const data = await res.json();
+                    if (data.display_name) {
+                        document.getElementById("busqueda").value = data.display_name;
+                        status.innerText = "Ubicación detectada. Puedes arrastrar el marcador si no es exacto.";
+                    }
+                } catch (error) {
+                    console.error("Error obteniendo dirección:", error);
+                }
+            }, (error) => {
+                alert("Error de GPS: " + error.message);
+                status.style.display = "none";
+            }, options);
+        }
+
+        // Función unificada para poner el marcador y permitir corregirlo manualmente
+        function actualizarPuntoEnMapa(lat, lon, titulo) {
+            coordenadaActual = { lat, lon };
+            map.setView([lat, lon], 18); // Zoom más cercano para ver la calle
+
+            if (marcador) map.removeLayer(marcador);
+
+            // Creamos el marcador ARRASTRABLE
+            marcador = L.marker([lat, lon], { draggable: true }).addTo(map)
+                .bindPopup(`<b>${titulo}</b><br>¡Puedes arrastrarme hasta la puerta exacta!`)
+                .openPopup();
+
+            // Evento: Cuando terminas de arrastrar el marcador, se actualiza la coordenada
+            marcador.on('dragend', function (event) {
+                const position = marcador.getLatLng();
+                coordenadaActual = { lat: position.lat, lon: position.lng };
+                console.log("Nueva posición manual:", coordenadaActual);
+            });
+        }
+
+        
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Control de Movimiento de Activos - LabAsset 360</title>
+    <style>
+        :root {
+            --primary: #1C2C70;
+            --secondary: #243B8F;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --bg: #f4f6fb;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-top: 5px solid var(--primary);
+        }
+
+        .header-iso {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+        }
+
+        .header-iso h1 {
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .doc-code {
+            font-size: 0.8rem;
+            color: #777;
+            text-align: right;
+        }
+
+        .asset-banner {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9rem;
+            border: 1px solid #eef0f2;
+        }
+
+        .asset-banner b {
+            color: var(--primary);
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .grid-comparativo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel-inspeccion {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .panel-inspeccion h3 {
+            font-size: 1rem;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: var(--secondary);
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .checklist input {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .badge-salida {
+            background: #fff3e0;
+            color: #e65100;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            border-left: 4px solid #ff9800;
+            white-space: pre-line;
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-action:hover {
+            background: var(--secondary);
+            box-shadow: 0 4px 12px rgba(36, 59, 143, 0.3);
+        }
+
+        .footer-note {
+            font-size: 0.75rem;
+            color: #999;
+            margin-top: 25px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header-iso">
+            <div>
+                <h1>Protocolo de Control de Activos</h1>
+                <span id="subtitulo-modo">Registro de Salida Técnica</span>
+            </div>
+            <div class="doc-code">
+                Código: FOR-GL-002<br>
+                Versión: 01<br>
+                ISO 9001:2015
+            </div>
+        </div>
+
+        <div class="asset-banner">
+            <div><b>Código Inventario</b> <span id="ast-codigo">---</span></div>
+            <div><b>Marca / Modelo</b> <span id="ast-marca">---</span></div>
+            <div><b>Ubicación Origen</b> <span id="ast-ubicacion">---</span></div>
+        </div>
+
+        <form id="formPrestamo">
+            <div class="grid-comparativo">
+                <div id="columna-previa" style="display:none;">
+                    <div class="panel-inspeccion" style="background: #fdfdfd;">
+                        <h3>Estado de Entrega (Salida)</h3>
+                        <div id="info-salida-previa" class="badge-salida"></div>
+                        <p style="font-size: 0.8rem; margin-top: 15px;">
+                            <b>Entregado a:</b> <span id="resp-previo"></span><br>
+                            <b>Fecha de Salida:</b> <span id="fecha-previo"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div id="columna-actual" style="grid-column: span 2;">
+                    <div class="panel-inspeccion">
+                        <h3 id="titulo-inspeccion">Inspección de Entrega</h3>
+
+                        <div class="form-group">
+                            <label>Responsable de la Custodia</label>
+                            <input type="text" id="responsable" required>
+                        </div>
+
+                        <label>Lista de Verificación Técnica:</label>
+                        <ul class="checklist">
+                            <li><input type="checkbox" class="check-item" value="Limpieza"> Limpieza externa</li>
+                            <li><input type="checkbox" class="check-item" value="Integridad"> Integridad física</li>
+                            <li><input type="checkbox" class="check-item" value="Accesorios"> Accesorios completos</li>
+                            <li><input type="checkbox" class="check-item" value="Funcionalidad"> Encendido exitoso</li>
+                        </ul>
+
+                        <div class="form-group">
+                            <label>Observaciones</label>
+                            <textarea id="observaciones"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px;">
+                <button type="submit" class="btn-action">
+                    Confirmar Registro
+                </button>
+            </div>
+        </form>
+
+        <div class="footer-note">
+            Registro de trazabilidad de activos - ISO 17025
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const modo = params.get('modo') || 'salida';
+        const API_URL = "http://127.0.0.1:8000";
+
+        async function inicializar() {
+            const resE = await fetch(`${API_URL}/api/equipos/${id}`);
+            const equipo = await resE.json();
+
+            document.getElementById('ast-codigo').innerText = equipo.codigo;
+            document.getElementById('ast-marca').innerText = `${equipo.marca} / ${equipo.modelo}`;
+            document.getElementById('ast-ubicacion').innerText = equipo.ubicacion;
+
+            if (modo === 'regreso') {
+                document.getElementById('subtitulo-modo').innerText = "Registro de Retorno Técnico";
+                document.getElementById('titulo-inspeccion').innerText = "Inspección de Recepción";
+                document.getElementById('columna-previa').style.display = 'block';
+                document.getElementById('columna-actual').style.gridColumn = 'span 1';
+                cargarDatosPrevios();
+            }
+        }
+
+        async function cargarDatosPrevios() {
+            const res = await fetch(`${API_URL}/api/equipos/${id}/ultimo-prestamo`);
+            const p = await res.json();
+
+            if (!p || !p.condiciones_salida) return;
+
+            let textoFormateado = "";
+
+            const matchChecklist = p.condiciones_salida.match(/\[CHECKLIST:\s*(.*?)\]/);
+            const matchDetalle = p.condiciones_salida.match(/DETALLE:\s*(.*)/);
+
+            if (matchChecklist && matchChecklist[1]) {
+                const items = matchChecklist[1].split(',').map(i => i.trim());
+                items.forEach(item => {
+                    if (item) textoFormateado += item + " OK\n";
+                });
+            }
+
+            if (matchDetalle && matchDetalle[1]) {
+                textoFormateado += "\nDetalle:\n" + matchDetalle[1];
+            }
+
+            document.getElementById('info-salida-previa').innerText = textoFormateado;
+            document.getElementById('resp-previo').innerText = p.responsable_prestamo;
+            document.getElementById('fecha-previo').innerText = p.fecha_salida;
+
+            document.getElementById('responsable').value = p.responsable_prestamo;
+            document.getElementById('responsable').disabled = true;
+        }
+
+        document.getElementById('formPrestamo').onsubmit = async (e) => {
+            e.preventDefault();
+
+            const responsable = document.getElementById('responsable').value.trim();
+            const checks = Array.from(document.querySelectorAll('.check-item:checked')).map(c => c.value);
+            const observaciones = document.getElementById('observaciones').value;
+
+            const payload = {
+                equipo_id: id,
+                responsable: responsable,
+                condiciones: `[CHECKLIST: ${checks.join(', ')}] - DETALLE: ${observaciones}`,
+                obs: observaciones
+            };
+
+            const endpoint = modo === 'regreso'
+                ? '/api/prestamos/regresar'
+                : '/api/prestamos/salir';
+
+            const res = await fetch(`${API_URL}${endpoint}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                alert("Registro almacenado correctamente.");
+                window.location.href = `detalle-equipo.html?id=${id}`;
+            } else {
+                const error = await res.json();
+                alert("Error servidor:\n" + JSON.stringify(error, null, 2));
+            }
+        };
+
+        inicializar();
+    </script>
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        <!-- Imagen por defecto (Desactivado) -->
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
+            style="width: 110px; height: 110px; object-fit: contain;">
+        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
+            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    </div>
+
+    <style>
+        /* Mantiene tu lógica original de fondo rojo y pulso */
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+    <script src="js/voice-reportar-falla.js"></script>
+</body>
+
+</html>

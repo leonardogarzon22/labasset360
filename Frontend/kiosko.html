@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modo Kiosco - Gestión de Activos</title>
+
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+
+            --color-solicitar: #3b82f6;
+            --color-falla: #ef4444;
+            --color-reporte: #8b5cf6;
+            --color-mant: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .kiosko-container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .info-panel {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        /* Estilos para la integración elegante del logo */
+        .header-kiosco {
+            text-align: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .kiosko-logo {
+            max-height: 45px;
+            /* Altura contenida para elegancia */
+            width: auto;
+            /* Mantiene proporción */
+            display: block;
+            /* Si el logo tiene fondo oscuro, podrías necesitar un filter: drop-shadow() sutil */
+        }
+
+        .header-kiosco h3 {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        /* Resto de estilos se mantienen igual */
+        .equipo-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .equipo-info h2 {
+            color: var(--text-main);
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .equipo-info p {
+            color: var(--text-muted);
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .estado-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 16px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .salud-ring {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 25px auto;
+            box-shadow: inset 0 0 0 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .salud-ring h1 {
+            font-size: 32px;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .salud-ring span {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .acciones-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .accion-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px 24px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        .accion-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
+
+        .btn-solicitar {
+            border-left: 6px solid var(--color-solicitar);
+        }
+
+        .btn-falla {
+            border-left: 6px solid var(--color-falla);
+        }
+
+        .btn-reporte {
+            border-left: 6px solid var(--color-reporte);
+        }
+
+        .btn-mantenimiento {
+            border-left: 6px solid var(--color-mant);
+        }
+
+        .btn-icon {
+            font-size: 28px;
+            margin-right: 20px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .btn-content {
+            flex: 1;
+        }
+
+        .btn-content h4 {
+            color: var(--text-main);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .btn-content p {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .btn-arrow {
+            color: #94a3b8;
+            font-size: 20px;
+            margin-left: 15px;
+            transition: transform 0.2s;
+        }
+
+        .accion-btn:hover .btn-arrow {
+            transform: translateX(4px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="kiosko-container">
+        <div class="info-panel">
+            <div class="header-kiosco">
+                <img src="assets/logo.png" alt="LabAsset 360 Logo" class="kiosko-logo">
+                <h3>Terminal de Autogestión</h3>
+            </div>
+
+            <div id="contenido-kiosko">
+                <div class="loading">
+                    Cargando información del equipo...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // La lógica de JavaScript se mantiene igual
+        const API = "http://127.0.0.1:8000";
+        const params = new URLSearchParams(window.location.search);
+        // Nota: para pruebas locales sin backend, puedes hardcodear un UUID aquí o usar el fallback
+        const equipoId = params.get("id") || "51bd4455-dc65-4326-a434-375449fb6e49";
+
+        async function cargarEquipo() {
+            if (!equipoId) {
+                mostrarError("⚠️ No se proporcionó ID de equipo.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API}/api/equipos/${equipoId}`);
+                if (!res.ok) throw new Error("Equipo no encontrado");
+                const equipo = await res.json();
+
+                let colorSalud = "var(--color-mant)";
+                if (equipo.indice_salud < 70) colorSalud = "#f59e0b";
+                if (equipo.indice_salud < 40) colorSalud = "var(--color-falla)";
+
+                document.getElementById("contenido-kiosko").innerHTML = `
+            <div class="equipo-header">
+                <div class="equipo-info">
+                    <h2>${equipo.codigo}</h2>
+                    <p>${equipo.marca || 'Marca N/D'} ${equipo.modelo || ''}</p>
+                    <div class="estado-badge">
+                        • ${equipo.estado}
+                    </div>
+                </div>
+
+                <div class="salud-ring" style="box-shadow: inset 0 0 0 8px ${colorSalud}20, inset 0 0 0 3px ${colorSalud}">
+                    <h1>${equipo.indice_salud}%</h1>
+                    <span>Salud</span>
+                </div>
+            </div>
+
+            <div class="acciones-list">
+                <button class="accion-btn btn-solicitar" onclick="solicitarEquipo()">
+                    
+                    <div class="btn-content">
+                        <h4>Solicitar Préstamo</h4>
+                        <p>Iniciar flujo con checklist de validación.</p>
+                    </div>
+                    <div class="btn-arrow">➔</div>
+                </button>
+
+                <button class="accion-btn btn-falla" onclick="reportarFalla()">
+                    
+                    <div class="btn-content">
+                        <h4>Reportar Falla</h4>
+                        <p>Registrar anomalía y enviar a revisión.</p>
+                    </div>
+                    <div class="btn-arrow">➔</div>
+                </button>
+
+                <button class="accion-btn btn-reporte" onclick="abrirReporte('${equipo.codigo}')">
+                    
+                    <div class="btn-content">
+                        <h4>Ver Reporte Técnico</h4>
+                        <p>Historial, calibraciones y aptitud ISO 17025.</p>
+                    </div>
+                    <div class="btn-arrow">➔</div>
+                </button>
+
+                <button class="accion-btn btn-mantenimiento" onclick="abrirDetalleEquipo()">
+                    
+                    <div class="btn-content">
+                        <h4>Gestión Avanzada</h4>
+                        <p>Programar mantenimientos o calibraciones.</p>
+                    </div>
+                    <div class="btn-arrow">➔</div>
+                </button>
+            </div>
+        `;
+            } catch (error) {
+                console.error(error);
+                mostrarError("⚠️ Error de conexión con el backend o equipo inexistente.");
+            }
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById("contenido-kiosko").innerHTML = `
+        <div class="loading" style="color: var(--color-falla)">
+            ${mensaje}
+        </div>
+    `;
+        }
+
+        function solicitarEquipo() { window.location.href = `gestion-prestamo.html?id=${equipoId}`; }
+        function reportarFalla() { window.location.href = `reportar-falla.html?id=${equipoId}`; }
+        function abrirReporte(codigo) { window.location.href = `reporte.html?id=${equipoId}&codigo=${encodeURIComponent(codigo)}`; }
+        function abrirDetalleEquipo() { window.location.href = `detalle-equipo.html?id=${equipoId}`; }
+
+        cargarEquipo();
+    </script>
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        <!-- Imagen por defecto (Desactivado) -->
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
+            style="width: 110px; height: 110px; object-fit: contain;">
+        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
+            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    </div>
+
+    <style>
+        /* Mantiene tu lógica original de fondo rojo y pulso */
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+    <script src="js/voice-kiosko.js"></script>
+</body>
+
+</html>

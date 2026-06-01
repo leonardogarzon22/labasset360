@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LabAsset 360 - Histórico de Equipos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Estilos base (Mantenidos de crear-equipo.html para consistencia) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #243B8F, #1C2C70);
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sidebar li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: white;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .main {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        /* Grid de Tarjetas */
+        .grid-equipos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Tarjeta Estilo KPI */
+        .card-equipo {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid #3A5BDB;
+        }
+
+        .card-equipo:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-equipo h3 {
+            color: #1C2C70;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .card-info {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        /* Badge de Estado */
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .estado-operativo {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .estado-revision {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .estado-no-operativo {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* Barra de Salud Visual */
+        .health-container {
+            margin-top: 15px;
+        }
+
+        .health-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .health-bar-bg {
+            background: #eee;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .health-bar-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        /* Buscador */
+        .search-box {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #dfe3f0;
+            width: 300px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>LabAsset 360</h2>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="crear-equipo.html">Crear Equipo</a></li>
+                <li class="active"><a href="historico.html">Histórico</a></li>
+                <li><a href="reporte.html">Reportes</a></li>
+                <li><a href="#">Configuración</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <div class="header-section">
+                <h1>Histórico de Equipos</h1>
+                <input type="text" id="buscador" class="search-box" placeholder="Buscar por código o marca..."
+                    onkeyup="filtrarEquipos()">
+            </div>
+
+            <div id="contenedor-equipos" class="grid-equipos">
+                <p>Cargando equipos...</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        let todosLosEquipos = [];
+
+        async function cargarEquipos() {
+            try {
+                // Nota: Deberás crear este endpoint en tu FastAPI (GET /api/equipos)
+                const res = await fetch(`${API_URL}/api/equipos`);
+                todosLosEquipos = await res.json();
+                renderizarTarjetas(todosLosEquipos);
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById("contenedor-equipos").innerHTML = "<p class='error'>No se pudo conectar con el servidor.</p>";
+            }
+        }
+
+        function renderizarTarjetas(equipos) {
+            const contenedor = document.getElementById("contenedor-equipos");
+            contenedor.innerHTML = "";
+
+            equipos.forEach(eq => {
+                // Lógica de color de salud
+                let colorSalud = "#2e7d32"; // Verde
+                if (eq.indice_salud < 70) colorSalud = "#f9a825"; // Amarillo/Naranja
+                if (eq.indice_salud < 40) colorSalud = "#c62828"; // Rojo
+
+                // Lógica de badge de estado (asumiendo que agregaremos el campo 'estado')
+                const estado = eq.estado || "Operativo";
+                const claseEstado = estado.toLowerCase().replace(" ", "-");
+
+                contenedor.innerHTML += `
+                <div class="card-equipo" onclick="irADetalle('${eq.id}')">
+                    <div style="display:flex; justify-content:space-between; align-items:start;">
+                        <h3>${eq.codigo}</h3>
+                        <span class="badge estado-${claseEstado}">${estado}</span>
+                    </div>
+                    
+                    <div class="card-info">
+                        <strong>Marca:</strong> ${eq.marca || 'N/A'}<br>
+                        <strong>Modelo:</strong> ${eq.modelo || 'N/A'}<br>
+                        <strong>Ubicación:</strong> ${eq.ubicacion || 'Sin asignar'}
+                    </div>
+
+                    <div class="health-container">
+                        <div class="health-label">
+                            <span>Salud del Equipo</span>
+                            <span>${eq.indice_salud}%</span>
+                        </div>
+                        <div class="health-bar-bg">
+                            <div class="health-bar-fill" style="width: ${eq.indice_salud}%; background: ${colorSalud};"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            });
+        }
+
+        function irADetalle(id) {
+            // Redirige a la pantalla de edición pasándole el ID
+            window.location.href = `detalle-equipo.html?id=${id}`;
+        }
+
+        function filtrarEquipos() {
+            const busqueda = document.getElementById("buscador").value.toLowerCase();
+            const filtrados = todosLosEquipos.filter(eq =>
+                eq.codigo.toLowerCase().includes(busqueda) ||
+                (eq.marca && eq.marca.toLowerCase().includes(busqueda))
+            );
+            renderizarTarjetas(filtrados);
+        }
+
+        // Inicializar
+        cargarEquipos();
+    </script>
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        <!-- Imagen por defecto (Desactivado) -->
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
+            style="width: 110px; height: 110px; object-fit: contain;">
+        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
+            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    </div>
+
+    <style>
+        /* Mantiene tu lógica original de fondo rojo y pulso */
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+    <script src="js/voice-historico.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabAsset360 | Ecosistema Digital Científico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #020617;
+            --accent-cyan: #00F2FF;
+            --accent-red: #ff3e3e;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --text-light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: var(--primary-blue);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #nano-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, #1e293b 0%, transparent 70%),
+                radial-gradient(circle at 80% 70%, #112240 0%, transparent 70%);
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            position: relative;
+        }
+
+        .hero-section {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 8%;
+        }
+
+        .welcome-area {
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .hero-section h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #fff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            letter-spacing: -2px;
+        }
+
+        .hero-section p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            max-width: 500px;
+            line-height: 1.6;
+            border-left: 3px solid var(--accent-cyan);
+            padding-left: 20px;
+        }
+
+        .auth-section {
+            flex: 0.8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: #111827;
+            padding: 50px 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .login-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .login-card p.subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 35px;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 14px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-auth {
+            width: 100%;
+            padding: 18px;
+            background: var(--accent-cyan);
+            color: #020617;
+            border: none;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .btn-auth:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .footer-links {
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .footer-links span {
+            color: var(--accent-cyan);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #error-msg {
+            color: var(--accent-red);
+            font-size: 0.8rem;
+            margin-top: 15px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .animate-up {
+            animation: fadeInUp 1s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="nano-canvas"></canvas>
+    <div class="bg-gradient"></div>
+
+    <div class="main-container">
+        <div class="hero-section animate-up">
+            <div class="welcome-area"></div>
+            <h1>LabAsset360</h1>
+            <p>Sincronización avanzada de activos químicos y biológicos. Gestión 360 de integridad analítica.</p>
+        </div>
+
+        <div class="auth-section">
+            <div class="login-card animate-up">
+                <h2>Acceso al Sistema</h2>
+                <p class="subtitle">Autenticación segura para laboratorios</p>
+
+                <input type="email" id="userEmail" placeholder="Usuario / Email Corporativo">
+                <input type="password" id="userPass" placeholder="Contraseña Maestra">
+
+                <button class="btn-auth" onclick="validarFormulario()">Iniciar Sincronización</button>
+
+                <div id="error-msg">⚠️ Error: Verifique sus credenciales e intente de nuevo.</div>
+
+                <div class="footer-links">
+                    ¿Nuevo laboratorio? <span onclick="window.location.href='registrar.html'">Registrar
+                        Ecosistema</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('nano-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let wordPoints = [];
+        const mouse = { x: null, y: null, radius: 120 };
+        let isAssembling = false;
+        let isAlertMode = false;
+        let idleTimer;
+
+        function createWordPoints() {
+            wordPoints = [];
+            const startX = window.innerWidth * 0.08;
+            const startY = window.innerHeight * 0.30;
+            const spacing = 55;
+
+            const drawLetter = (points, offset) => {
+                points.forEach(p => {
+                    // Reducido a 2 puntos por nodo para minimizar población manteniendo el grosor
+                    for (let i = 0; i < 2; i++) {
+                        wordPoints.push({
+                            x: startX + offset + p[0] * 6 + (Math.random() * 2),
+                            y: startY + p[1] * 6 + (Math.random() * 2)
+                        });
+                    }
+                });
+            };
+
+            const letters = {
+                B: [[0, 0], [0, 2], [0, 4], [0, 6], [0, 8], [1, 0], [2, 0], [3, 1], [2, 4], [3, 5], [4, 7], [2, 8], [1, 8]],
+                I: [[0, 0], [2, 0], [4, 0], [2, 4], [2, 8], [0, 8]],
+                E: [[0, 0], [4, 0], [0, 4], [3, 4], [0, 8], [4, 8]],
+                N: [[0, 0], [0, 8], [1, 2], [2, 4], [3, 6], [4, 0], [4, 8]],
+                V: [[0, 0], [1, 4], [2, 8], [3, 4], [4, 0]],
+                D: [[0, 0], [0, 8], [2, 0], [4, 2], [4, 6], [2, 8]],
+                O: [[1, 0], [3, 0], [0, 2], [4, 2], [0, 6], [4, 6], [1, 8], [3, 8]],
+                S: [[1, 0], [4, 1], [0, 2], [2, 4], [4, 6], [0, 7], [3, 8]]
+            };
+
+            let currentOffset = 0;
+            "BIENVENIDOS".split('').forEach(char => {
+                if (letters[char]) {
+                    drawLetter(letters[char], currentOffset);
+                    currentOffset += spacing;
+                }
+            });
+        }
+
+        function activarAlertaVisual() {
+            isAlertMode = true;
+            // La alerta se quita sola después de 4 segundos para volver a la normalidad
+            setTimeout(() => {
+                isAlertMode = false;
+            }, 4000);
+        }
+
+        async function validarFormulario() {
+            const email = document.getElementById('userEmail').value;
+            const pass = document.getElementById('userPass').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        password: pass
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    errorMsg.style.display = "block";
+                    activarAlertaVisual(); // <--- AGREGA ESTO
+                    return;
+                }
+
+                window.location.href = "dashboard.html";
+
+            } catch (error) {
+                errorMsg.style.display = "block";
+                activarAlertaVisual(); // <--- AGREGA ESTO TAMBIÉN
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+            isAssembling = false;
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => { isAssembling = true; }, 1200);
+        });
+
+        class Nanobot {
+            constructor(index) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.5 + 1;
+                this.vx = (Math.random() - 0.5) * 1.5;
+                this.vy = (Math.random() - 0.5) * 1.5;
+                this.index = index;
+            }
+
+            update() {
+                if (isAssembling && wordPoints[this.index] && !isAlertMode) {
+                    let target = wordPoints[this.index];
+                    this.x += (target.x - this.x) * 0.1;
+                    this.y += (target.y - this.y) * 0.1;
+                } else {
+                    let speedMult = isAlertMode ? 4 : 1;
+                    this.x += this.vx * speedMult;
+                    this.y += this.vy * speedMult;
+
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < mouse.radius) {
+                        let force = (mouse.radius - dist) / mouse.radius;
+                        this.x -= (dx / dist) * force * 10;
+                        this.y -= (dy / dist) * force * 10;
+                    }
+
+                    if (this.x > canvas.width || this.x < 0) this.vx *= -1;
+                    if (this.y > canvas.height || this.y < 0) this.vy *= -1;
+                }
+            }
+
+            draw() {
+                if (isAlertMode) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#ff3e3e';
+                    ctx.fillStyle = '#ff3e3e';
+                    ctx.fillRect(this.x, this.y, this.size, this.size);
+                } else if (isAssembling) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#00F2FF';
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(this.x, this.y, this.size * 1.2, this.size * 1.2);
+                } else {
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = 'rgba(0, 242, 255, 0.4)';
+                    ctx.fillRect(this.x, this.y, this.size, this.size);
+                }
+            }
+        }
+
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            createWordPoints();
+            particles = [];
+            // Reducido significativamente: Solo los necesarios para la palabra + 60 de ambiente
+            const totalRequired = wordPoints.length + 60;
+            for (let i = 0; i < totalRequired; i++) {
+                particles.push(new Nanobot(i));
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let p of particles) {
+                p.update();
+                p.draw();
+            }
+            if (!isAssembling && !isAlertMode) {
+                for (let i = 0; i < particles.length; i += 4) { // Menos conexiones visuales
+                    for (let j = i + 1; j < i + 2; j++) {
+                        if (!particles[j]) continue;
+                        let dx = particles[i].x - particles[j].x;
+                        let dy = particles[i].y - particles[j].y;
+                        let d = Math.sqrt(dx * dx + dy * dy);
+                        if (d < 70) {
+                            ctx.strokeStyle = `rgba(0, 242, 255, ${0.1 * (1 - d / 70)})`;
+                            ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+                        }
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', init);
+        init();
+        animate();
+    </script>
+</body>
+
+</html>

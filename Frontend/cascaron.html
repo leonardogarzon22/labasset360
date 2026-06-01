@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Módulo Ubicaciones con Ruta - LabAsset 360</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+body { margin:0; font-family: Arial; background:#f4f6fa;}
+header { background:#1e2a38; color:white; padding:15px 30px;}
+.container { padding:30px;}
+.card {
+    background:white;
+    padding:20px;
+    border-radius:8px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.05);
+    margin-bottom:25px;
+}
+input { width:100%; padding:8px; margin-top:5px; }
+button {
+    padding:8px 15px;
+    background:#0056b3;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+button:hover { background:#003f87; }
+#map { height:450px; border-radius:8px; margin-top:15px;}
+table { width:100%; border-collapse: collapse; }
+th, td { padding:8px; border-bottom:1px solid #ddd; }
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Ubicaciones con Búsqueda y Ruta</h1>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>Buscar Dirección</h2>
+
+<input type="text" id="busqueda" placeholder="Ej: Calle 26 Bogotá">
+<br><br>
+<button onclick="buscarDireccion()">Buscar</button>
+<button onclick="guardarUbicacion()">Guardar</button>
+
+<div id="map"></div>
+</div>
+
+<div class="card">
+<h2>Ubicaciones Guardadas</h2>
+
+<table>
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Acción</th>
+</tr>
+</thead>
+<tbody id="tablaUbicaciones"></tbody>
+</table>
+
+</div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+let map = L.map('map').setView([4.7110, -74.0721], 13);
+let marcador;
+let rutaLayer;
+let ubicaciones = [];
+let coordenadaActual = null;
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+
+// 🔎 Buscar dirección
+async function buscarDireccion() {
+
+    let direccion = document.getElementById("busqueda").value;
+
+    let response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${direccion}`
+    );
+
+    let data = await response.json();
+
+    if(data.length === 0){
+        alert("Dirección no encontrada");
+        return;
+    }
+
+    let lat = parseFloat(data[0].lat);
+    let lon = parseFloat(data[0].lon);
+
+    coordenadaActual = {lat, lon};
+
+    map.setView([lat, lon], 16);
+
+    if(marcador) map.removeLayer(marcador);
+    marcador = L.marker([lat, lon]).addTo(map);
+
+}
+
+
+// 💾 Guardar ubicación
+function guardarUbicacion(){
+
+    if(!coordenadaActual){
+        alert("Busca una dirección primero");
+        return;
+    }
+
+    let nombre = document.getElementById("busqueda").value;
+
+    ubicaciones.push({
+        nombre,
+        lat: coordenadaActual.lat,
+        lon: coordenadaActual.lon
+    });
+
+    renderTabla();
+
+    alert("Ubicación guardada (demo frontend)");
+}
+
+
+// 📋 Render tabla
+function renderTabla(){
+
+    let tabla = document.getElementById("tablaUbicaciones");
+    tabla.innerHTML = "";
+
+    ubicaciones.forEach((u, index) => {
+
+        tabla.innerHTML += `
+        <tr>
+            <td>${u.nombre}</td>
+            <td>
+                <button onclick="irUbicacion(${index})">Ver</button>
+                <button onclick="mostrarRuta(${index})">Ruta</button>
+            </td>
+        </tr>
+        `;
+    });
+}
+
+
+// 📍 Ir a ubicación
+function irUbicacion(index){
+
+    let u = ubicaciones[index];
+
+    map.setView([u.lat, u.lon], 16);
+
+    if(marcador) map.removeLayer(marcador);
+    marcador = L.marker([u.lat, u.lon]).addTo(map);
+}
+
+
+// 🛣️ Mostrar ruta desde ubicación actual del usuario
+async function mostrarRuta(index){
+
+    if(!navigator.geolocation){
+        alert("Geolocalización no soportada");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async function(pos){
+
+        let origenLat = pos.coords.latitude;
+        let origenLon = pos.coords.longitude;
+
+        let destino = ubicaciones[index];
+
+        // Servicio OSRM
+        let url = `https://router.project-osrm.org/route/v1/driving/${origenLon},${origenLat};${destino.lon},${destino.lat}?overview=full&geometries=geojson`;
+
+        let response = await fetch(url);
+        let data = await response.json();
+
+        if(rutaLayer) map.removeLayer(rutaLayer);
+
+        rutaLayer = L.geoJSON(data.routes[0].geometry).addTo(map);
+
+        map.fitBounds(rutaLayer.getBounds());
+
+    });
+}
+
+</script>
+
+</body>
+</html>

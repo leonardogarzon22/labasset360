@@ -1,0 +1,9 @@
+Backend/__pycache__/
+Backend/*.pyc
+Backend/.env
+Backend/.venv/
+Backend/venv/
+Backend/uploads/
+
+.DS_Store
+Thumbs.db

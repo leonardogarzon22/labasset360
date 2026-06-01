@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LabAsset 360 - Nuevo Equipo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #243B8F, #1C2C70);
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sidebar li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: white;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .main {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
+        }
+
+        .card h1 {
+            margin-bottom: 25px;
+            font-size: 22px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dfe3f0;
+            font-size: 14px;
+        }
+
+        /* Estilo simple para el textarea para que no rompa tu diseño */
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dfe3f0;
+            font-size: 14px;
+            font-family: inherit;
+            grid-column: span 2;
+            height: 80px;
+            resize: none;
+        }
+
+        /* Contenedor simple para los checks */
+        .check-row {
+            grid-column: span 2;
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+
+        .check-row div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .check-row input {
+            width: auto;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            background: #3A5BDB;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2e47b8;
+        }
+
+        .info-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f3fa;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .success {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #c62828;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <aside class="sidebar">
+            <h2>LabAsset 360</h2>
+            <ul>
+                <li>
+                    <a href="dashboard.html">Dashboard</a>
+                </li>
+
+                <li class="active">
+                    <a href="nuevo_equipo.html">Crear Equipo</a>
+                </li>
+
+                <li><a href="historico.html">Histórico</a></li>
+                <li><a href="reporte.html">Reportes</a></li>
+                <li><a href="#">Configuración</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <div class="card">
+
+                <h1>Nuevo Equipo</h1>
+
+                <form id="equipoForm">
+
+                    <div class="form-grid">
+
+                        <div>
+                            <label>Código</label>
+                            <input type="text" id="codigo" required>
+                        </div>
+
+                        <div>
+                            <label>Tipo de Equipo</label>
+                            <select id="tipo" required>
+                                <option value="">Cargando...</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Marca</label>
+                            <input type="text" id="marca">
+                        </div>
+
+                        <div>
+                            <label>Modelo</label>
+                            <input type="text" id="modelo">
+                        </div>
+
+                        <div>
+                            <label>Serial</label>
+                            <input type="text" id="serial">
+                        </div>
+
+                        <div>
+                            <label>Ubicación</label>
+                            <input type="text" id="ubicacion">
+                        </div>
+
+                        <div>
+                            <label>Nivel de Uso</label>
+                            <select id="uso">
+                                <option value="bajo">Bajo</option>
+                                <option value="medio">Medio</option>
+                                <option value="alto">Alto</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>Fecha Inicio de Operación</label>
+                            <input type="date" id="fecha_inicio_operacion">
+                        </div>
+
+                        <div class="check-row">
+                            <div><input type="checkbox" id="check_fisico"> <label style="margin:0">Estado Físico
+                                    OK</label></div>
+                            <div><input type="checkbox" id="check_electrico"> <label style="margin:0">Eléctrico
+                                    OK</label></div>
+                            <div><input type="checkbox" id="check_funcional"> <label style="margin:0">Funcional
+                                    OK</label></div>
+                        </div>
+
+                        <div style="grid-column: span 2;">
+                            <label>Observaciones de Recepción (Auditoría)</label>
+                            <textarea id="observaciones"
+                                placeholder="Describa el estado en que se recibe el equipo..."></textarea>
+                        </div>
+
+                    </div>
+                    <button type="submit">Registrar Equipo</button>
+                </form>
+
+                <div id="resultado" class="info-box" style="display:none;"></div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+
+        const API_URL = "http://127.0.0.1:8000";
+
+        /* ===== CARGAR TIPOS ===== */
+        async function cargarTipos() {
+            try {
+                let res = await fetch(`${API_URL}/api/tipos-equipos`);
+                let data = await res.json();
+                let select = document.getElementById("tipo");
+
+                select.innerHTML = '<option value="">Seleccionar</option>';
+
+                data.forEach(tipo => {
+                    select.innerHTML += `<option value="${tipo.id}">
+${tipo.nombre} - ${tipo.categoria} (Criticidad: ${tipo.criticidad_total})
+</option>`;
+                });
+
+            } catch (error) {
+                console.error("Error cargando tipos", error);
+            }
+        }
+
+        cargarTipos();
+
+
+        /* ===== REGISTRAR EQUIPO ===== */
+        document.getElementById("equipoForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            // Estructurar el texto de auditoría para enviar al backend
+            const auditoriaInfo = `
+ESTADO FÍSICO: ${document.getElementById('check_fisico').checked ? 'CONFORME' : 'NO CONFORME'}
+ESTADO ELÉCTRICO: ${document.getElementById('check_electrico').checked ? 'CONFORME' : 'NO CONFORME'}
+FUNCIONAMIENTO: ${document.getElementById('check_funcional').checked ? 'CONFORME' : 'NO CONFORME'}
+NOTAS: ${document.getElementById('observaciones').value}
+`.trim();
+
+            let equipoData = {
+                codigo: document.getElementById("codigo").value,
+                tipo_equipo_id: parseInt(document.getElementById("tipo").value),
+                marca: document.getElementById("marca").value,
+                modelo: document.getElementById("modelo").value,
+                serial: document.getElementById("serial").value,
+                ubicacion: document.getElementById("ubicacion").value,
+                nivel_uso: document.getElementById("uso").value,
+                fecha_inicio_operacion: document.getElementById("fecha_inicio_operacion").value || null,
+                observaciones_iniciales: auditoriaInfo
+            };
+
+            try {
+
+                let res = await fetch(`${API_URL}/api/equipos`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(equipoData)
+                });
+
+                let data = await res.json();
+
+                document.getElementById("resultado").style.display = "block";
+                document.getElementById("resultado").innerHTML = `
+<span class="success">Equipo registrado correctamente</span><br><br>
+ID: ${data.id}<br>
+Índice Salud Inicial: ${data.indice_salud}
+`;
+
+            } catch (error) {
+
+                document.getElementById("resultado").style.display = "block";
+                document.getElementById("resultado").innerHTML = `
+<span class="error">Error al registrar equipo</span>
+`;
+
+            }
+
+        });
+
+    </script>
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        <!-- Imagen por defecto (Desactivado) -->
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado" style="width: 110px; height: 110px; object-fit: contain;">
+        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado" style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    </div>
+
+    <style>
+        /* Mantiene tu lógica original de fondo rojo y pulso */
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+    <script src="js/voice-crear-equipo.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Etiqueta Inteligente QR</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Segoe UI', sans-serif;
+        }
+
+        body{
+            background:#eef2fb;
+            padding:30px;
+        }
+
+        .toolbar{
+            display:flex;
+            justify-content:flex-end;
+            margin-bottom:20px;
+        }
+
+        .btn-download{
+            background:#243B8F;
+            color:white;
+            border:none;
+            padding:12px 18px;
+            border-radius:10px;
+            cursor:pointer;
+            font-weight:bold;
+            font-size:14px;
+        }
+
+        .etiqueta-container{
+
+            width:900px;
+            margin:auto;
+
+            background:white;
+
+            border-radius:24px;
+
+            overflow:hidden;
+
+            box-shadow:
+                0 12px 35px rgba(0,0,0,0.12);
+
+            border:2px solid #243B8F;
+        }
+
+        .header{
+
+            background:
+                linear-gradient(135deg,#243B8F,#1C2C70);
+
+            color:white;
+
+            padding:25px 35px;
+
+            display:flex;
+
+            justify-content:space-between;
+
+            align-items:center;
+        }
+
+        .logo-box{
+            display:flex;
+            align-items:center;
+            gap:15px;
+        }
+
+        .logo-box img{
+            width:85px;
+            height:auto;
+            background:white;
+            padding:8px;
+            border-radius:12px;
+        }
+
+        .header-text h1{
+            font-size:28px;
+            margin-bottom:5px;
+        }
+
+        .header-text p{
+            opacity:0.9;
+            font-size:14px;
+        }
+
+        .estado-box{
+
+            background:rgba(255,255,255,0.18);
+
+            padding:12px 18px;
+
+            border-radius:14px;
+
+            text-align:center;
+        }
+
+        .estado-box span{
+            display:block;
+            font-size:13px;
+            opacity:0.8;
+        }
+
+        .estado-box strong{
+            font-size:18px;
+        }
+
+        .body{
+
+            display:grid;
+
+            grid-template-columns:1fr 300px;
+
+            gap:30px;
+
+            padding:35px;
+        }
+
+        .info-grid{
+
+            display:grid;
+
+            grid-template-columns:1fr 1fr;
+
+            gap:20px;
+        }
+
+        .card-info{
+
+            background:#f7f9ff;
+
+            border:1px solid #dfe5f5;
+
+            border-radius:16px;
+
+            padding:18px;
+        }
+
+        .card-info label{
+
+            display:block;
+
+            font-size:12px;
+
+            color:#666;
+
+            text-transform:uppercase;
+
+            margin-bottom:8px;
+
+            font-weight:600;
+        }
+
+        .card-info div{
+
+            font-size:18px;
+
+            color:#243B8F;
+
+            font-weight:bold;
+        }
+
+        .salud-section{
+
+            margin-top:20px;
+        }
+
+        .salud-bar{
+
+            width:100%;
+
+            height:18px;
+
+            background:#dfe6e9;
+
+            border-radius:20px;
+
+            overflow:hidden;
+
+            margin-top:10px;
+        }
+
+        .salud-fill{
+
+            height:100%;
+
+            background:
+                linear-gradient(90deg,#2ecc71,#27ae60);
+
+            width:0%;
+        }
+
+        .salud-text{
+
+            margin-top:10px;
+
+            font-size:15px;
+
+            font-weight:bold;
+
+            color:#2e7d32;
+        }
+
+        .qr-panel{
+
+            background:#f7f9ff;
+
+            border-radius:20px;
+
+            border:1px solid #dfe5f5;
+
+            display:flex;
+
+            flex-direction:column;
+
+            justify-content:center;
+
+            align-items:center;
+
+            padding:25px;
+        }
+
+        #qrcode{
+
+            background:white;
+
+            padding:18px;
+
+            border-radius:18px;
+
+            border:1px solid #ddd;
+        }
+
+        .qr-caption{
+
+            margin-top:18px;
+
+            text-align:center;
+
+            color:#555;
+
+            font-size:14px;
+
+            line-height:1.5;
+        }
+
+        .footer{
+
+            background:#f3f5fc;
+
+            border-top:1px solid #e0e6f5;
+
+            padding:18px 35px;
+
+            display:flex;
+
+            justify-content:space-between;
+
+            font-size:13px;
+
+            color:#666;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="toolbar">
+
+        <button class="btn-download" onclick="descargarPDF()">
+            Descargar PDF
+        </button>
+
+    </div>
+
+    <div class="etiqueta-container" id="etiqueta">
+
+        <!-- HEADER -->
+        <div class="header">
+
+            <div class="logo-box">
+
+                <img src="Assets/logo.png">
+
+                <div class="header-text">
+                    <h1>LabAsset 360</h1>
+                    <p>Etiqueta Inteligente de Activo</p>
+                </div>
+
+            </div>
+
+            <div class="estado-box">
+                <span>Estado</span>
+                <strong id="estado"></strong>
+            </div>
+
+        </div>
+
+        <!-- BODY -->
+        <div class="body">
+
+            <!-- IZQUIERDA -->
+            <div>
+
+                <div class="info-grid">
+
+                    <div class="card-info">
+                        <label>Equipo</label>
+                        <div id="nombre"></div>
+                    </div>
+
+                    <div class="card-info">
+                        <label>Código</label>
+                        <div id="codigo"></div>
+                    </div>
+
+                    <div class="card-info">
+                        <label>Marca / Modelo</label>
+                        <div id="marca"></div>
+                    </div>
+
+                    <div class="card-info">
+                        <label>Ubicación</label>
+                        <div id="ubicacion"></div>
+                    </div>
+
+                    <div class="card-info">
+                        <label>Responsable</label>
+                        <div id="responsable"></div>
+                    </div>
+
+                    <div class="card-info">
+                        <label>Serial</label>
+                        <div id="serial"></div>
+                    </div>
+
+                </div>
+
+                <!-- SALUD -->
+                <div class="salud-section">
+
+                    <label style="font-size:13px;font-weight:bold;color:#666;">
+                        Índice de Salud del Activo
+                    </label>
+
+                    <div class="salud-bar">
+                        <div class="salud-fill" id="saludFill"></div>
+                    </div>
+
+                    <div class="salud-text" id="saludTexto"></div>
+
+                </div>
+
+            </div>
+
+            <!-- DERECHA -->
+            <div class="qr-panel">
+
+                <div id="qrcode"></div>
+
+                <div class="qr-caption">
+                    Escanee este código QR<br>
+                    para acceder al modo kiosco<br>
+                    del equipo.
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+
+            <span>
+                Sistema Inteligente de Gestión de Activos
+            </span>
+
+            <span id="fecha"></span>
+
+        </div>
+
+    </div>
+
+<script>
+
+const API_URL = "http://127.0.0.1:8000";
+
+async function cargarEtiqueta() {
+
+    const id = new URLSearchParams(window.location.search).get("id");
+
+    if (!id) {
+        alert("No se encontró el equipo");
+        return;
+    }
+
+    try {
+
+        const res = await fetch(`${API_URL}/api/equipos/${id}`);
+
+        const e = await res.json();
+
+        document.getElementById("nombre").innerText =
+            e.tipo_nombre || "-";
+
+        document.getElementById("codigo").innerText =
+            e.codigo || "-";
+
+        document.getElementById("marca").innerText =
+            `${e.marca || "-"} / ${e.modelo || "-"}`;
+
+        document.getElementById("ubicacion").innerText =
+            e.ubicacion || "-";
+
+        document.getElementById("responsable").innerText =
+            e.responsable || "No asignado";
+
+        document.getElementById("serial").innerText =
+            e.serial || "-";
+
+        document.getElementById("estado").innerText =
+            (e.estado || "-").toUpperCase();
+
+        // SALUD
+        const salud = parseFloat(e.indice_salud || 0);
+
+        document.getElementById("saludFill").style.width =
+            `${salud}%`;
+
+        document.getElementById("saludTexto").innerText =
+            `${salud}%`;
+
+        // FECHA
+        document.getElementById("fecha").innerText =
+            new Date().toLocaleDateString();
+
+        // QR
+        const qrURL =
+            `${window.location.origin}/Frontend/kiosko.html?id=${e.id}`;
+
+        new QRCode(document.getElementById("qrcode"), {
+            text: qrURL,
+            width: 200,
+            height: 200,
+            colorDark: "#243B8F",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+    } catch(err) {
+
+        console.error(err);
+
+        alert("Error cargando etiqueta");
+
+    }
+
+}
+
+function descargarPDF(){
+
+    const element = document.getElementById("etiqueta");
+
+    html2pdf().set({
+
+        margin: 8,
+
+        filename: "Etiqueta_QR.pdf",
+
+        image: {
+            type: "jpeg",
+            quality: 1
+        },
+
+        html2canvas: {
+            scale: 2
+        },
+
+        jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "landscape"
+        }
+
+    }).from(element).save();
+
+}
+
+cargarEtiqueta();
+
+</script>
+
+</body>
+</html>

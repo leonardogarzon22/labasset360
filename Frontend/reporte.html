@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LabAsset 360 - Reporte de Auditoría Oficial</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+            color: #333;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #243B8F, #1C2C70);
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .sidebar .active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .main {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .selector-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .selector-card select {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .btn-generate {
+            background: #243B8F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-download {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: none;
+        }
+
+        #reporte-container {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 15mm 20mm;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            border: 1.5px solid #333;
+        }
+
+        .header-table td {
+            border: 1px solid #333;
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+        .logo-cell {
+            width: 25%;
+            text-align: center;
+        }
+
+        .logo-img {
+            max-width: 130px;
+            max-height: 70px;
+            object-fit: contain;
+        }
+
+        .title-cell {
+            width: 50%;
+            text-align: center;
+        }
+
+        .title-cell h1 {
+            font-size: 16px;
+            text-transform: uppercase;
+            color: #1C2C70;
+        }
+
+        .info-cell {
+            width: 25%;
+            font-size: 9px;
+            line-height: 1.4;
+            color: #444;
+        }
+
+        .report-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            background: #f0f2f8;
+            padding: 6px 10px;
+            font-weight: bold;
+            font-size: 13px;
+            border-left: 5px solid #243B8F;
+            margin-bottom: 8px;
+            color: #1C2C70;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 10px;
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .data-table th {
+            background: #f9f9f9;
+            width: 30%;
+            color: #555;
+        }
+
+        .obs-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-size: 10.5px;
+            min-height: 60px;
+            white-space: pre-line;
+            background: #fffcf5;
+            line-height: 1.4;
+            border-radius: 4px;
+        }
+
+        .signature-area {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .sig-line {
+            border-top: 1.5px solid #000;
+            width: 220px;
+            margin-top: 40px;
+            padding-top: 6px;
+        }
+
+        @media print {
+
+            .sidebar,
+            .selector-card {
+                display: none;
+            }
+
+            #reporte-container {
+                box-shadow: none;
+                margin: 0;
+            }
+        }
+
+        /* Estilo específico para la celda de soporte en el historial de mantenimiento */
+        .soporte-cell {
+            text-align: center;
+            /* Centrado horizontal */
+            vertical-align: middle;
+            /* Centrado vertical */
+        }
+
+        .btn-soporte {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f2f8;
+            color: #243B8F;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            border: 1px solid #243B8F;
+            transition: all 0.3s;
+        }
+
+        .btn-soporte:hover {
+            background-color: #243B8F;
+            color: white;
+        }
+
+        .btn-soporte i {
+            margin-right: 5px;
+            font-size: 16px;
+        }
+
+        /* Estilos para el botón de información de reprogramación */
+        .btn-repro-info {
+            background: #f39c12;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: 5px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Estilos para la ventana emergente (Modal) */
+        .repro-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .repro-modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        @media print {
+            .btn-repro-info {
+                display: none !important;
+            }
+        }
+
+        /* Animación del spinner del kiosco */
+        @keyframes spin-kiosko {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="overlay-kiosko"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #f4f6fb; z-index: 99999; display: none; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.3s ease;">
+        <div
+            style="border: 4px solid #e2e8f0; border-top: 4px solid #243B8F; border-radius: 50%; width: 45px; height: 45px; animation: spin-kiosko 1s linear infinite;">
+        </div>
+        <p
+            style="margin-top: 20px; color: #1C2C70; font-family: 'Segoe UI', sans-serif; font-weight: 600; font-size: 16px;">
+            Generando reporte técnico...</p>
+    </div>
+
+    <script>
+        if (new URLSearchParams(window.location.search).has("codigo")) {
+            document.getElementById("overlay-kiosko").style.display = "flex";
+        }
+    </script>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>LabAsset 360</h2>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="crear-equipo.html">Crear Equipo</a></li>
+                <li><a href="historico.html">Histórico</a></li>
+                <li class="active"><a href="reporte.html">Reportes</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <h1 style="margin-bottom:20px;">Generador de Reportes de Auditoría</h1>
+
+            <div class="selector-card">
+                <div style="flex:1;">
+                    <label style="font-size:12px; font-weight:bold;">Seleccionar Equipo para Hoja de Vida:</label>
+                    <select id="equipo-select">
+                        <option value="">Cargando base de datos...</option>
+                    </select>
+                </div>
+                <button class="btn-generate" onclick="generarVistaPrevia()">Generar Vista Previa</button>
+                <button class="btn-download" id="btnDownload" onclick="descargarPDF()">Descargar PDF</button>
+
+            </div>
+
+            <div id="reporte-container">
+
+                <table class="header-table">
+                    <tr>
+                        <td class="logo-cell"><img src="Assets/logo.png" class="logo-img"></td>
+                        <td class="title-cell">
+                            <h1>Hoja de Vida y Control Técnico</h1>
+                            <p style="font-size:10px; margin-top:4px;">Sistema de Gestión de Activos LabAsset 360</p>
+                        </td>
+                        <td class="info-cell">
+                            <b>Código:</b> FOR-MTTO-01<br>
+                            <b>Versión:</b> 04<br>
+                            <b>Norma:</b> ISO 17025
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="report-section">
+                    <div class="section-title">1. INFORMACIÓN GENERAL DEL ACTIVO</div>
+                    <table class="data-table">
+                        <tr>
+                            <th>CÓDIGO INVENTARIO:</th>
+                            <td id="rep-codigo"></td>
+                        </tr>
+                        <tr>
+                            <th>NOMBRE DEL EQUIPO:</th>
+                            <td id="rep-nombre"></td>
+                        </tr>
+                        <tr>
+                            <th>MARCA / MODELO:</th>
+                            <td id="rep-marca-modelo"></td>
+                        </tr>
+                        <tr>
+                            <th>SERIAL:</th>
+                            <td id="rep-serial"></td>
+                        </tr>
+                        <tr>
+                            <th>UBICACIÓN:</th>
+                            <td id="rep-ubicacion"></td>
+                        </tr>
+                        <tr>
+                            <th>RESPONSABLE:</th>
+                            <td id="rep-responsable"></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-title">2. ESTADO DE OPERACIÓN Y SALUD</div>
+                    <table class="data-table">
+                        <tr>
+                            <th>ESTADO ACTUAL:</th>
+                            <td id="rep-estado"></td>
+                        </tr>
+                        <tr>
+                            <th>ÍNDICE DE SALUD:</th>
+                            <td id="rep-salud"></td>
+                        </tr>
+                        <tr>
+                            <th>FECHA INICIO:</th>
+                            <td id="rep-inicio"></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-title">3. REGISTRO DE INSPECCIÓN INICIAL</div>
+                    <div class="obs-box" id="rep-observaciones"></div>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-title">4. HISTORIAL DE PRÉSTAMOS Y MOVIMIENTOS</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:20%;">Fecha Salida</th>
+                                <th style="width:25%;">Responsable</th>
+                                <th style="width:35%;">Condiciones Salida</th>
+                                <th style="width:20%;">Fecha Regreso</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rep-historial-prestamos">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Sin movimientos registrados</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-title">5. CONFIRMACIÓN DE APTITUD (ISO 17025)</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40%;">Parámetro Evaluado</th>
+                                <th style="width:20%;">Valor</th>
+                                <th style="width:20%;">Criterio</th>
+                                <th style="width:20%;">Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rep-historial-aptitud">
+                            <tr>
+                                <td colspan="4" style="text-align:center;">Sin evaluaciones registradas</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-title">6. HISTORIAL DE MANTENIMIENTO</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:15%;">Fecha</th>
+                                <th style="width:15%;">Tipo</th>
+                                <th style="width:40%;">Tecnico</th>
+                                <th style="width:15%;">Estado</th>
+                                <th style="width:15%;">Soporte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rep-historial-mantenimiento">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <div class="section-title">7. HISTORIAL DE CALIBRACIONES</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:20%;">Fecha Cal.</th>
+                                <th style="width:20%;">Tecnico</th>
+                                <th style="width:40%;">Estado</th>
+                                <th style="width:20%;">Soporte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rep-historial-calibracion">
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div class="signature-area">
+                    <div>
+                        <div class="sig-line"><b>Nestor Rodriguez</b></div>
+                        <p style="font-size:10px;">Director de Calidad</p>
+                    </div>
+                    <div>
+                        <div class="sig-line"><b>Danilo Riaño</b></div>
+                        <p style="font-size:10px;">Director de Laboratorio</p>
+                        <p style="font-size:9px; color:#888; margin-top:5px;">Generado el: <span id="print-date"></span>
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        let equipoSeleccionado = null;
+
+        async function cargarEquipos() {
+            const res = await fetch(`${API_URL}/api/equipos`);
+            const equipos = await res.json();
+            const select = document.getElementById('equipo-select');
+            select.innerHTML = '<option value="">-- Seleccione un Activo --</option>';
+            equipos.forEach(e => {
+                select.innerHTML += `<option value="${e.id}">${e.codigo} - ${e.marca}</option>`;
+            });
+        }
+
+        function formatearChecklist(texto) {
+            if (!texto) return "";
+
+            let resultado = "";
+
+            const matchChecklist = texto.match(/\[CHECKLIST:\s*(.*?)\]/);
+            const matchDetalle = texto.match(/DETALLE:\s*(.*)/);
+
+            if (matchChecklist && matchChecklist[1]) {
+                const items = matchChecklist[1].split(',').map(i => i.trim());
+                items.forEach(item => {
+                    if (item) resultado += item + " OK\n";
+                });
+            }
+
+            if (matchDetalle && matchDetalle[1]) {
+                resultado += "\nDetalle:\n" + matchDetalle[1];
+            }
+
+            return resultado;
+        }
+
+        async function generarVistaPrevia() {
+            const id = document.getElementById('equipo-select').value;
+            if (!id) return alert("Seleccione un equipo");
+
+            const res = await fetch(`${API_URL}/api/equipos/${id}`);
+            const e = await res.json();
+            equipoSeleccionado = e;
+
+            document.getElementById('rep-codigo').innerText = e.codigo;
+            document.getElementById('rep-nombre').innerText = e.tipo_nombre;
+            document.getElementById('rep-marca-modelo').innerText = `${e.marca} / ${e.modelo}`;
+            document.getElementById('rep-serial').innerText = e.serial || "N/A";
+            document.getElementById('rep-ubicacion').innerText = e.ubicacion;
+            document.getElementById('rep-responsable').innerText = e.responsable || "No asignado";
+            document.getElementById('rep-estado').innerText = e.estado.toUpperCase();
+            document.getElementById('rep-salud').innerText = `${e.indice_salud}%`;
+            document.getElementById('rep-inicio').innerText = e.fecha_inicio_operacion || "N/A";
+            document.getElementById('rep-observaciones').innerText = e.observaciones_iniciales || "Sin observaciones.";
+
+            /// Cargar última evaluación para el reporte
+            const resEval = await fetch(`${API_URL}/api/equipos/${id}/evaluaciones`);
+            if (resEval.ok) {
+                const evaluaciones = await resEval.json();
+                const tbodyEval = document.getElementById('rep-historial-aptitud');
+                tbodyEval.innerHTML = "";
+
+                if (evaluaciones.length === 0) {
+                    tbodyEval.innerHTML = '<tr><td colspan="4" style="text-align:center;">Sin evaluaciones registradas</td></tr>';
+                } else {
+                    
+                    const ultima = evaluaciones[0];
+                    ultima.resultados.forEach(r => {
+                        
+                        const valorCumple = String(r.cumple).trim().toLowerCase();
+                        const esPositivo = (valorCumple === "cumple" || valorCumple === "true");
+
+                        tbodyEval.innerHTML += `
+                    <tr>
+                        <td style="padding: 8px;">${r.prueba_nombre}</td>
+                        <td style="padding: 8px;">${r.valor_obtenido}</td>
+                        <td style="padding: 8px;">${r.criterio_aplicado || 'N/A'}</td>
+                        <td style="padding: 8px; font-weight: bold; color: ${esPositivo ? '#2e7d32' : '#c62828'};">
+                            ${esPositivo ? "CUMPLE" : "NO CUMPLE"}
+                        </td>
+                    </tr>`;
+                    });
+                }
+            }
+
+            const resH = await fetch(`${API_URL}/api/equipos/${id}/historial-prestamos`);
+            const historial = await resH.json();
+            const tbody = document.getElementById('rep-historial-prestamos');
+            tbody.innerHTML = "";
+
+            if (historial.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Sin movimientos registrados</td></tr>';
+            } else {
+                historial.forEach(h => {
+                    const condiciones = formatearChecklist(h.condiciones_salida);
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${h.fecha_salida}</td>
+                    <td>${h.responsable_prestamo}</td>
+                    <td style="white-space:pre-line;">${condiciones}</td>
+                    <td>${h.fecha_regreso || 'En curso'}</td>
+                </tr>`;
+                });
+            }
+
+            // --- CARGAR HISTORIAL DE MANTENIMIENTO ---
+            const resM = await fetch(`${API_URL}/api/equipos/${id}/mantenimientos`); // Endpoint en main.py
+            if (resM.ok) {
+                const mantenimientos = await resM.json();
+                const tbodyM = document.getElementById('rep-historial-mantenimiento');
+                tbodyM.innerHTML = "";
+
+                if (mantenimientos.length === 0) {
+                    tbodyM.innerHTML = '<tr><td colspan="5" style="text-align:center;">Sin registros</td></tr>';
+                } else {
+                    mantenimientos.sort((a, b) => {
+                        const fechaA = new Date(a.fecha_realizada || a.fecha_programada);
+                        const fechaB = new Date(b.fecha_realizada || b.fecha_programada);
+
+                        return fechaA - fechaB;
+                    });
+                    mantenimientos.forEach(m => {
+                        const linkSoporte = m.soporte_url
+                            ? `<a href="${API_URL}${m.soporte_url}" target="_blank" title="Ver Soporte" style="text-decoration:none; font-size:16px;">📂</a>`
+                            : '<span style="color:#999;">Sin archivo</span>';
+
+                        
+                        let infoBoton = "";
+                        if (m.estado && m.estado.toLowerCase() === 'reprogramado') {
+                            const detalle = m.observaciones_modificacion || "Sin motivo registrado";
+                            infoBoton = `<button class="btn-repro-info" onclick="mostrarModal('${detalle}')">?</button>`;
+                        }
+
+                        tbodyM.innerHTML += `
+        <tr>
+            <td>${m.fecha_realizada || m.fecha_programada}</td>
+            <td style="text-transform: capitalize;">${m.tipo}</td>
+            <td>${m.tecnico || 'No asignado'}</td>
+            <td style="text-transform: capitalize;">${m.estado} ${infoBoton}</td>
+            <td class="soporte-cell">${linkSoporte}</td>
+        </tr>`;
+                    });
+                }
+            }
+
+            // --- CARGAR HISTORIAL DE CALIBRACIONES ---
+            const resC = await fetch(`${API_URL}/api/equipos/${id}/calibraciones`);
+
+            if (resC.ok) {
+
+                const calibraciones = await resC.json();
+                const tbodyC = document.getElementById('rep-historial-calibracion');
+                tbodyC.innerHTML = "";
+
+                if (!calibraciones || calibraciones.length === 0) {
+                    tbodyC.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align:center;">
+                    Sin registros de calibración
+                </td>
+            </tr>`;
+                } else {
+
+                    calibraciones.sort((a, b) => {
+                        const fechaA = new Date(a.fecha_realizada || a.fecha_programada);
+                        const fechaB = new Date(b.fecha_realizada || b.fecha_programada);
+
+                        return fechaA - fechaB;
+                    });
+
+                    calibraciones.forEach(c => {
+                        const fechaMostrar = c.fecha_realizada || c.fecha_programada || "-";
+                        const tecnico = c.proveedor || "-";
+                        const resultadoMostrar = c.resultado || c.estado || "Pendiente";
+                        const esAprobado = resultadoMostrar.toLowerCase().includes("aprobado") ||
+                            resultadoMostrar.toLowerCase().includes("conforme");
+
+                        
+                        let infoBoton = "";
+                        if (c.estado && c.estado.toLowerCase() === 'reprogramado') {
+                            
+                            const detalle = c.observaciones || 'No especificado';
+                            infoBoton = `<button class="btn-repro-info" onclick="mostrarModal('${detalle}')">?</button>`;
+                        }
+
+                        tbodyC.innerHTML += `
+        <tr>
+            <td>${fechaMostrar}</td>
+            <td>${tecnico}</td>
+            <td style="font-weight:bold; color:${esAprobado ? '#2e7d32' : '#c62828'}; text-transform:uppercase;">
+                ${resultadoMostrar} ${infoBoton}
+            </td>
+            <td>
+                ${c.certificado_url ? `<a href="${API_URL}${c.certificado_url}" target="_blank">📄 Ver Certificado</a>` : "—"}
+            </td>
+        </tr>
+    `;
+                    });
+                }
+            }
+
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString();
+            document.getElementById('reporte-container').style.display = 'block';
+            document.getElementById('btnDownload').style.display = 'inline-block';
+        }
+
+        function descargarPDF() {
+            const element = document.getElementById('reporte-container');
+            const opt = {
+                margin: 10,
+                filename: `HV_${equipoSeleccionado.codigo}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function mostrarModal(texto) {
+            document.getElementById('reproText').innerText = texto;
+            document.getElementById('reproModal').style.display = 'block';
+        }
+
+        // Cerrar modal
+        window.onclick = function (event) {
+            const modal = document.getElementById('reproModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // FUNCIÓN CONTROLADORA SECUENCIAL
+        async function inicializarReporte() {
+            await cargarEquipos(); // 1. Espera a que cargue la lista
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const codigoBuscado = urlParams.get("codigo");
+
+            if (codigoBuscado) {
+                const select = document.getElementById('equipo-select');
+                let encontrado = false;
+
+                // 2. Busca el equipo en el select
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].text.includes(codigoBuscado)) {
+                        select.selectedIndex = i;
+                        encontrado = true;
+                        break;
+                    }
+                }
+
+                if (encontrado) {
+                    await generarVistaPrevia(); // 3. Genera el reporte
+
+                    // 4. Desvanece la pantalla de carga
+                    const overlay = document.getElementById('overlay-kiosko');
+                    if (overlay) {
+                        overlay.style.opacity = "0";
+                        setTimeout(() => overlay.remove(), 300);
+                    }
+                } else {
+                    const overlay = document.getElementById('overlay-kiosko');
+                    if (overlay) overlay.remove();
+                }
+            }
+        }
+
+        inicializarReporte();
+    </script>
+
+
+    <div id="reproModal" class="repro-modal">
+        <div class="repro-modal-content">
+            <h3 style="color: #243B8F; margin-bottom: 15px;">Detalle de Reprogramación</h3>
+            <p id="reproText"
+                style="font-size: 14px; color: #444; line-height: 1.5; background: #fff8ee; padding: 10px; border-radius: 6px;">
+            </p>
+            <button onclick="document.getElementById('reproModal').style.display='none'"
+                style="margin-top:20px; padding: 8px 20px; cursor:pointer; background: #243B8F; color: white; border: none; border-radius: 6px;">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
+            style="width: 110px; height: 110px; object-fit: contain;">
+        
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
+            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    </div>
+
+    <style>
+        
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+    <script src="js/voice-reporte.js"></script>
+
+
+</body>
+
+</html>

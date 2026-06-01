@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabAsset360 | Registro de Ecosistema</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #020617;
+            --accent-cyan: #00F2FF;
+            --accent-red: #ff3e3e;
+            --text-light: #f8fafc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background: var(--primary-blue);
+            color: var(--text-light);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #nano-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            position: relative;
+        }
+
+        .hero-section {
+            flex: 0.8;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 8%;
+        }
+
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(to right, #fff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+        }
+
+        .auth-section {
+            flex: 1.2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: #111827;
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        }
+
+        .register-card h2 { font-size: 1.5rem; margin-bottom: 25px; font-weight: 700; text-align: center; }
+
+        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+
+        select option { background: #111827; color: white; }
+        input:focus, select:focus { border-color: var(--accent-cyan); background: #1e293b; }
+
+        #extra-area { display: none; animation: fadeIn 0.3s forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-register {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-cyan);
+            color: #020617;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-register:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn-register:disabled { background: #475569; cursor: not-allowed; }
+
+        #error-msg { 
+            color: var(--accent-red); 
+            font-size: 0.85rem; 
+            text-align: center;
+            margin-top: 15px; 
+            display: none; 
+            padding: 10px;
+            border: 1px dashed var(--accent-red);
+            border-radius: 8px;
+            background: rgba(255, 62, 62, 0.1);
+        }
+
+        .back-link { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #64748b; }
+        .back-link a { color: var(--accent-cyan); text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <canvas id="nano-canvas"></canvas>
+
+    <div class="main-container">
+        <div class="hero-section">
+            <h1>LabAsset360</h1>
+            <p style="color: #64748b; margin-top: 10px;">Inicialización de Nodo Central de Investigación.</p>
+        </div>
+
+        <div class="auth-section">
+            <div class="register-card">
+                <h2>Nuevo Ecosistema</h2>
+                
+                <div class="input-row">
+                    <input type="text" id="nombre" placeholder="Nombre" required>
+                    <input type="text" id="apellido" placeholder="Apellido" required>
+                </div>
+                
+                <input type="text" id="laboratorio" placeholder="Nombre del Laboratorio" required>
+                
+                <select id="area-select" onchange="toggleAreaInput()">
+                    <option value="" disabled selected>Seleccione Área</option>
+                    <option value="Calidad">Calidad</option>
+                    <option value="Dirección Laboratorio">Dirección Laboratorio</option>
+                    <option value="Coordinación Laboratorio">Coordinación Laboratorio</option>
+                    <option value="otro">Otra área (Especificar)...</option>
+                </select>
+
+                <input type="text" id="extra-area" placeholder="Especifique su Área">
+
+                <input type="email" id="email" placeholder="Email Corporativo" required>
+                <input type="password" id="pass" placeholder="Contraseña Maestra" required>
+                
+                <button class="btn-register" id="btnSubmit" onclick="ejecutarRegistro()">Inicializar Nodo</button>
+                
+                <div id="error-msg"></div>
+
+                <div class="back-link">
+                    ¿Ya tienes una cuenta? <a href="login.html">Iniciar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <script>
+        // --- LÓGICA DE INTERFAZ ---
+        function toggleAreaInput() {
+            const select = document.getElementById('area-select');
+            const extra = document.getElementById('extra-area');
+            if(select.value === 'otro') {
+                extra.style.display = 'block';
+                extra.setAttribute('required', 'true');
+            } else {
+                extra.style.display = 'none';
+                extra.removeAttribute('required');
+            }
+        }
+
+        function mostrarError(texto) {
+            const msg = document.getElementById('error-msg');
+            msg.innerText = texto;
+            msg.style.display = "block";
+        }
+
+        function ocultarError() {
+            document.getElementById('error-msg').style.display = "none";
+        }
+
+        // --- CONEXIÓN REAL CON EL BACKEND ---
+        async function ejecutarRegistro() {
+            const btn = document.getElementById('btnSubmit');
+            const areaPrincipal = document.getElementById('area-select').value;
+            const areaFinal = areaPrincipal === 'otro' ? document.getElementById('extra-area').value : areaPrincipal;
+            
+            const payload = {
+                nombre: document.getElementById('nombre').value,
+                apellido: document.getElementById('apellido').value,
+                laboratorio: document.getElementById('laboratorio').value,
+                area: areaFinal,
+                email: document.getElementById('email').value,
+                password: document.getElementById('pass').value
+            };
+
+            // Validación básica front-end
+            if (!payload.nombre || !payload.area || !payload.email || !payload.password) {
+                mostrarError("⚠️ Todos los campos son obligatorios para la integridad del nodo.");
+                activarAlertaVisual();
+                return;
+            }
+
+            ocultarError();
+            btn.disabled = true;
+            btn.innerText = "Sincronizando...";
+
+            try {
+                // Ajusta la URL según donde corra tu FastAPI (ej: http://127.0.0.1:8000)
+                const response = await fetch('http://127.0.0.1:8000/api/registro', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // El servidor respondió con un error (ej: 400 Bad Request por área duplicada)
+                    mostrarError(`❌ Error de Validación: ${data.detail || 'Verifique los datos'}`);
+                    activarAlertaVisual();
+                    btn.disabled = false;
+                    btn.innerText = "Inicializar Nodo";
+                } else {
+                    // Éxito
+                    alert("✅ Registro exitoso. Nodo guardado en PostgreSQL.");
+                    window.location.href = "login.html"; 
+                }
+            } catch (error) {
+                mostrarError("📡 Error de conexión: No se pudo alcanzar el servidor central.");
+                activarAlertaVisual();
+                btn.disabled = false;
+                btn.innerText = "Inicializar Nodo";
+            }
+        }
+
+        // --- EFECTOS VISUALES (NANOROBOTS) ---
+        const canvas = document.getElementById('nano-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let isAlertMode = false;
+
+        function activarAlertaVisual() {
+            isAlertMode = true;
+            setTimeout(() => { isAlertMode = false; }, 4000);
+        }
+
+        class Nanobot {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.5 + 1;
+                this.vx = (Math.random() - 0.5) * 1.2;
+                this.vy = (Math.random() - 0.5) * 1.2;
+            }
+            update() {
+                let speed = isAlertMode ? 4 : 1;
+                this.x += this.vx * speed;
+                this.y += this.vy * speed;
+                if (this.x > canvas.width || this.x < 0) this.vx *= -1;
+                if (this.y > canvas.height || this.y < 0) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = isAlertMode ? '#ff3e3e' : 'rgba(0, 242, 255, 0.4)';
+                if(isAlertMode) { ctx.shadowBlur = 10; ctx.shadowColor = '#ff3e3e'; }
+                else { ctx.shadowBlur = 0; }
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+        function init() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = Array.from({length: 70}, () => new Nanobot());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+
+        init(); animate();
+        window.addEventListener('resize', init);
+    </script>
+</body>
+</html>

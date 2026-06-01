@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LabAsset 360 - Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ===== ESTILOS ORIGINALES MANTENIDOS ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #243B8F, #1C2C70);
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .sidebar li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .main {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .topbar {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* KPIs */
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi {
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transition: 0.3s;
+        }
+
+        .kpi h3 {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .kpi .big-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+
+        .kpi-1 {
+            background: linear-gradient(135deg, #2E3F8F, #3F57B5);
+        }
+
+        .kpi-2 {
+            background: linear-gradient(135deg, #4A6CF7, #6A8CFF);
+        }
+
+        .kpi-3 {
+            background: linear-gradient(135deg, #2FA4D7, #5BC0EB);
+        }
+
+        .kpi-4 {
+            background: linear-gradient(135deg, #38C6A7, #63D2C6);
+        }
+
+        /* GRID DE CONTENIDO */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #1C2C70;
+        }
+
+        /* NUEVOS ESTILOS PARA INDICADORES DEBAJO DEL GRÁFICO */
+        .resumen-flota-extra {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+
+        .resumen-item p {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .resumen-item span {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-red {
+            color: #FF4B2B;
+            font-weight: 700;
+            background: #fff1f0;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .alert {
+            padding: 12px;
+            background: #f8f9fd;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            border-left: 4px solid #4A6CF7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-view {
+            background: #243B8F;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        canvas {
+            max-height: 220px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <h2>LabAsset 360</h2>
+            <ul>
+                <li class="active" onclick="location.reload()">Dashboard</li>
+                <li onclick="location.href='crear-equipo.html'">Crear Equipo</li>
+                <li onclick="location.href='historico.html'">Histórico</li>
+                <li onclick="location.href='reporte.html'">Reportes</li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <div class="topbar">
+                <h1>Resumen de Operaciones</h1>
+                <span id="txt-fecha" style="color: #666; font-size: 0.9rem;"></span>
+            </div>
+
+            <section class="kpis">
+                <div class="kpi kpi-1">
+                    <h3>Operatividad</h3>
+                    <div class="big-number" id="kpi-op">--%</div>
+                </div>
+                <div class="kpi kpi-2">
+                    <h3>Mantenimientos</h3>
+                    <div class="big-number" id="kpi-mant">--</div>
+                </div>
+                <div class="kpi kpi-3">
+                    <h3>Cals. Vencidas</h3>
+                    <div class="big-number" id="kpi-cal">--</div>
+                </div>
+                <div class="kpi kpi-4">
+                    <h3>Salud General</h3>
+                    <div class="big-number" id="kpi-salud">--%</div>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="left-column">
+                    <div class="card">
+                        <h3>Estado de la Flota</h3>
+                        <canvas id="chartEstados"></canvas>
+
+                        <div class="resumen-flota-extra">
+                            <div class="resumen-item">
+                                <p>Total Activos</p>
+                                <span id="txt-activos-sum" style="color: #2E3F8F;">--</span>
+                            </div>
+                            <div class="resumen-item">
+                                <p>Fuera de Servicio ⚠️</p>
+                                <span id="txt-no-operativos-sum" style="color: #E74C3C;">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h3>Equipos con Salud Crítica (< 50%)</h3>
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Ubicación</th>
+                                            <th>Salud</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tabla-criticos"></tbody>
+                                </table>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="card">
+                        <h3>Alertas Recientes</h3>
+                        <div id="contenedor-alertas"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:8000";
+        let myChart = null;
+
+        async function cargarDatos() {
+            document.getElementById('txt-fecha').innerText = new Date().toLocaleDateString();
+
+            try {
+                const res = await fetch(`${API_URL}/api/dashboard`);
+                const data = await res.json();
+
+                // KPIs
+                document.getElementById('kpi-op').innerText = data.kpis.operatividad + "%";
+                document.getElementById('kpi-mant').innerText = data.kpis.mantenimientos;
+                document.getElementById('kpi-cal').innerText = data.kpis.calibraciones;
+                document.getElementById('kpi-salud').innerText = data.kpis.salud_general + "%";
+
+                // Gráfico (y los nuevos contadores calculados adentro)
+                renderizarGrafico(data.grafico);
+
+                // Tabla Críticos
+                const tbody = document.getElementById('tabla-criticos');
+                tbody.innerHTML = data.tabla_criticos.length ? "" : "<tr><td colspan='4' style='text-align:center'>No hay equipos críticos</td></tr>";
+                data.tabla_criticos.forEach(eq => {
+                    tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight:600">${eq.codigo}</td>
+                        <td>${eq.ubicacion}</td>
+                        <td><span class="status-red">${eq.salud}%</span></td>
+                        <td><button class="btn-view" onclick="location.href='detalle-equipo.html?id=${eq.id}'">Ver Ficha</button></td>
+                    </tr>
+                `;
+                });
+
+                // Alertas
+                const alertBox = document.getElementById('contenedor-alertas');
+                alertBox.innerHTML = data.alertas.length ? "" : "<p style='color:#999'>Sin alertas pendientes</p>";
+                data.alertas.forEach(al => {
+                    alertBox.innerHTML += `
+                    <div class="alert">
+                        <span>${al.mensaje}</span>
+                        <button class="btn-view" onclick="location.href='detalle-equipo.html?id=${al.id}'">Revisar</button>
+                    </div>
+                `;
+                });
+
+            } catch (error) {
+                console.error("Error al conectar con la API:", error);
+            }
+        }
+
+        function renderizarGrafico(stats) {
+            const ctx = document.getElementById('chartEstados').getContext('2d');
+            if (myChart) myChart.destroy();
+
+            // --- CÁLCULO DE TOTALES PARA LOS TEXTOS INFERIORES ---
+            let totalFuera = 0;
+            let totalActivos = 0;
+
+            for (const [estado, conteo] of Object.entries(stats)) {
+                // Comparamos en minúsculas para evitar errores de tipeo
+                if (estado.toLowerCase() === 'no operativo') {
+                    totalFuera += conteo;
+                } else {
+                    // Cualquier otro estado (Operativo, En préstamo, En revisión) se considera "Activo"
+                    totalActivos += conteo;
+                }
+            }
+
+            // Actualizamos los números en el HTML
+            document.getElementById('txt-activos-sum').innerText = totalActivos;
+            document.getElementById('txt-no-operativos-sum').innerText = totalFuera;
+
+            // --- RENDERIZADO DEL GRÁFICO (MANTIENE ESTRUCTURA ORIGINAL) ---
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(stats),
+                    datasets: [{
+                        data: Object.values(stats),
+                        backgroundColor: ['#38C6A7', '#4A6CF7', '#F1C40F', '#E74C3C', '#243B8F'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 15, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarDatos);
+    </script>
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        <!-- Imagen por defecto (Desactivado) -->
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
+            style="width: 110px; height: 110px; object-fit: contain;">
+        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
+            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    </div>
+
+    <style>
+        /* Mantiene tu lógica original de fondo rojo y pulso */
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+    <script src="js/voice-dashboard.js"></script>
+</body>
+
+</html>
