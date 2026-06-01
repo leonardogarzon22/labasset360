@@ -13,6 +13,7 @@ const VoiceEngine = (function() {
         recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.lang = 'es-CO';
+        // interimResults en false ayuda a procesar solo cuando la frase esté consolidada
         recognition.interimResults = false;
     } else {
         console.warn("La Web Speech API no es compatible con este navegador.");
@@ -39,9 +40,44 @@ const VoiceEngine = (function() {
         }
     }
 
+    // Crea un panel flotante en el celular para ver qué está escuchando en tiempo real
+    function crearDepuradorPantalla() {
+        if (document.getElementById('siena-debug-overlay')) return;
+        const debugDiv = document.createElement('div');
+        debugDiv.id = 'siena-debug-overlay';
+        debugDiv.style.position = 'fixed';
+        debugDiv.style.bottom = '10px';
+        debugDiv.style.left = '50%';
+        debugDiv.style.transform = 'translateX(-50%)';
+        debugDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        debugDiv.style.color = '#fff';
+        debugDiv.style.padding = '8px 15px';
+        debugDiv.style.borderRadius = '20px';
+        debugDiv.style.fontSize = '12px';
+        debugDiv.style.zIndex = '99999';
+        debugDiv.style.fontFamily = 'sans-serif';
+        debugDiv.style.pointerEvents = 'none';
+        debugDiv.style.textAlign = 'center';
+        debugDiv.style.minWidth = '200px';
+        debugDiv.innerText = 'Siena: Esperando voz...';
+        document.body.appendChild(debugDiv);
+    }
+
+    function actualizarDepurador(texto) {
+        const debugDiv = document.getElementById('siena-debug-overlay');
+        if (debugDiv) {
+            debugDiv.innerText = `Siena escuchó: "${texto}"`;
+            debugDiv.style.border = "1px solid #2ecc71";
+            setTimeout(() => { debugDiv.style.border = "none"; }, 1000);
+        }
+    }
+
     function processTranscript(transcript) {
         const lowerTranscript = transcript.toLowerCase().trim();
         console.log("Voz detectada:", lowerTranscript);
+        
+        // Actualiza el texto en la pantalla del celular
+        actualizarDepurador(lowerTranscript);
 
         // 1. COMANDOS GLOBALES DE ACTIVACIÓN (Se escuchan siempre)
         if (lowerTranscript.includes('siena iníciate') || lowerTranscript.includes('siena iniciate')) {
@@ -65,12 +101,20 @@ const VoiceEngine = (function() {
         }
 
         // 2. FILTRO DE ESTADO
-        // Si Siena está dormida, ignoramos cualquier otra cosa que se hable en el laboratorio
         if (!isSienaAwake) return;
+
+        // =========================================================================
+        // MEJORA DE SENSIBILIDAD: Limpieza del texto para compatibilidad con Regex ^
+        // =========================================================================
+        // Si el usuario dijo "Siena, reportar falla" o "Por favor reportar falla", 
+        // eliminamos el prefijo para dejar solo "reportar falla" y que el regex funcione.
+        let cleanTranscript = lowerTranscript
+            .replace(/^(siena|por favor|oye siena|escucha siena)[,\s]*/, '')
+            .trim();
 
         // 3. PROCESAMIENTO DE COMANDOS DE PANTALLA
         for (let cmd of registeredCommands) {
-            const match = lowerTranscript.match(cmd.regex);
+            const match = cleanTranscript.match(cmd.regex);
             if (match) {
                 cmd.action(match);
                 return; 
@@ -99,19 +143,19 @@ const VoiceEngine = (function() {
 
         recognition.onend = () => {
             isListening = false;
-            // Bucle infinito: si el microfono se apaga (por silencio o cambio de página), lo forzamos a reiniciar
+            // Bucle infinito corregido para móviles: si se corta, vuelve a enganchar de inmediato
             startPhysicalListening();
         };
     }
 
     // Auto-arranque al cargar cualquier página
     window.addEventListener('load', () => {
+        crearDepuradorPantalla();
         startPhysicalListening();
         updateUI();
     });
 
     return {
-        // Mantenemos el toggle manual por si el navegador bloquea el micrófono inicialmente
         toggle: function() {
             if (isSienaAwake) {
                 isSienaAwake = false;
