@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>LabAsset 360 - Detalle de Equipo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Librería QR -->
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
@@ -207,7 +207,7 @@
             cursor: pointer;
         }
 
-        /* Estilo para los iconos dentro de la tabla */
+        
         .btn-action-tab {
             background: none;
             border: none;
@@ -230,7 +230,7 @@
             display: inline-block;
         }
 
-        /* Asegura que la columna de acciones no se rompa */
+       
         #tabla-calibraciones td:last-child {
             min-width: 120px;
         }
@@ -361,7 +361,7 @@
 
                 <div id="aptitud-box">
 
-                    <!-- ===== MODO EDICIÓN ===== -->
+                    
                     <div id="seccion-confirmacion">
 
                         <p style="color:#777;margin-bottom:15px;">
@@ -441,7 +441,7 @@
                     badge.innerText = estadoActual;
 
                     // 2. COLORES DINÁMICOS SEGÚN EL ESTADO REAL
-                    // Definimos los colores para que se vea "lindo" y profesional
+                   
                     const estilos = {
                         'OPERATIVO': { bg: '#e8f5e9', color: '#2e7d32' },
                         'EN PRÉSTAMO': { bg: '#e3f2fd', color: '#1565c0' },
@@ -535,7 +535,7 @@
 
                             const esCompletado = cal.estado === "completado";
 
-                            // 🟢 ICONO CUADRADO VERDE CON CHECK
+                            
                             const iconoCompletado = `
                 <div style="
                     background:#2e7d32;
@@ -552,7 +552,7 @@
                 </div>
             `;
 
-                            // 🟡 BOTONES SI ESTÁ PENDIENTE
+                           
                             const botonesPendiente = `
                 <button onclick="abrirEjecutarCal('${cal.id}')"
                     style="background:none;border:none;cursor:pointer;font-size:1.2rem;"
@@ -731,7 +731,7 @@ oninput="evaluarManual(${p.id})"
 
                     // SI ES PRÉSTAMO: Redirigir antes de guardar
                     if (estadoSeleccionado === "En prestamo") {
-                        // Guardamos la ubicación y responsable actual en sesión por si acaso
+                        // Guardar  la ubicación y responsable actual en sesión por si acaso
                         sessionStorage.setItem('pending_ubicacion', document.getElementById('ubicacion').value);
 
                         // Redirigir a la página de préstamos
@@ -752,7 +752,7 @@ oninput="evaluarManual(${p.id})"
                         });
 
                         if (res.ok) {
-                            // REFRESCAR AUTOMÁTICAMENTE LA INTERFAZ (Sin F5)
+                            
                             await cargarDetalle();
                             alert("✅ Cambios guardados y estado actualizado.");
                         } else {
@@ -802,7 +802,7 @@ oninput="evaluarManual(${p.id})"
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 fecha_programada: nuevaFecha,
-                                // ESTA LLAVE DEBE SER IGUAL A LA DEL ESQUEMA EN PYTHON:
+                                
                                 observaciones_modificacion: motivo
                             })
                         });
@@ -816,7 +816,7 @@ oninput="evaluarManual(${p.id})"
                     }
                 }
 
-                // Función para cerrar el modal (si no la tenías)
+                // Función para cerrar el modal 
                 function cerrarModalReprogramar() {
                     document.getElementById('modalReprogramar').style.display = 'none';
                 }
@@ -843,7 +843,7 @@ oninput="evaluarManual(${p.id})"
 
                         if (res.ok) {
                             cerrarModalCalibracion();
-                            await cargarCalibraciones(); // Refresca la tabla
+                            await cargarCalibraciones(); 
                             alert("Calibración programada con éxito");
                         } else {
                             alert("Error al guardar la calibración");
@@ -871,7 +871,7 @@ oninput="evaluarManual(${p.id})"
                 async function guardarProgramacion() {
                     const data = {
                         fecha_programada: document.getElementById('p_m_fecha').value,
-                        tecnico: document.getElementById('p_m_tecnico').value, // Guardamos el técnico aquí
+                        tecnico: document.getElementById('p_m_tecnico').value,
                         tipo: document.getElementById('p_m_tipo').value,
                         estado: 'pendiente'
                     };
@@ -906,14 +906,14 @@ oninput="evaluarManual(${p.id})"
                     if (file) formData.append('soporte', file);
 
                     const res = await fetch(`${API_URL}/api/mantenimientos/${idMant}/ejecutar`, {
-                        method: 'PUT', // O PATCH según tu backend
+                        method: 'PUT',
                         body: formData
                     });
 
                     if (res.ok) {
                         cerrarModal('modalEjecutarMantenimiento');
                         await cargarMantenimientos();
-                        await cargarDetalle(); // Para actualizar la salud
+                        await cargarDetalle();
                     }
                 }
 
@@ -1080,7 +1080,7 @@ oninput="evaluarManual(${p.id})"
                     const lista = document.getElementById("lista-resultados");
                     lista.innerHTML = "";
 
-                    // Aplicamos un estilo de grid al contenedor
+                    
                     lista.style.display = "grid";
                     lista.style.direction = "ltr";
                     lista.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
@@ -1234,7 +1234,7 @@ oninput="evaluarManual(${p.id})"
                         if (res.ok) {
                             alert("Calibración finalizada con éxito");
                             document.getElementById('modalEjecutarCal').style.display = 'none';
-                            cargarCalibraciones(); // Recargamos la tabla
+                            cargarCalibraciones(); 
                         } else {
                             const errorData = await res.json();
                             alert("Error: " + (errorData.detail || "No se pudo guardar"));
@@ -1299,7 +1299,7 @@ oninput="evaluarManual(${p.id})"
                             document.getElementById("ub-nombre").innerText = ultima.nombre_personalizado;
                             document.getElementById("ub-dir").innerText = ultima.direccion_texto;
 
-                            // Botón para Google Maps (Corregido el link)
+                            // Botón para Google Maps
                             document.getElementById("btn-llegar-container").innerHTML = `
                 <a href="https://www.google.com/maps/search/?api=1&query=${ultima.latitud},${ultima.longitud}"
                    target="_blank" class="btn-save" style="text-decoration:none; display:inline-block; font-size:0.8rem; padding:8px 12px; background:#27ae60;">
@@ -1480,7 +1480,7 @@ oninput="evaluarManual(${p.id})"
             </div>
 
             <style>
-                /* Mantiene tu lógica original de fondo rojo y pulso */
+                
                 #voice-indicator.active {
                     background: #e74c3c !important;
                     animation: pulseVoice 1.5s infinite;

@@ -247,7 +247,7 @@
 
             const drawLetter = (points, offset) => {
                 points.forEach(p => {
-                    // Reducido a 2 puntos por nodo para minimizar población manteniendo el grosor
+                    
                     for (let i = 0; i < 2; i++) {
                         wordPoints.push({
                             x: startX + offset + p[0] * 6 + (Math.random() * 2),
@@ -304,7 +304,7 @@
 
                 if (!response.ok) {
                     errorMsg.style.display = "block";
-                    activarAlertaVisual(); // <--- AGREGA ESTO
+                    activarAlertaVisual(); 
                     return;
                 }
 
@@ -312,7 +312,7 @@
 
             } catch (error) {
                 errorMsg.style.display = "block";
-                activarAlertaVisual(); // <--- AGREGA ESTO TAMBIÉN
+                activarAlertaVisual(); 
             }
         }
 
@@ -382,7 +382,7 @@
             canvas.height = window.innerHeight;
             createWordPoints();
             particles = [];
-            // Reducido significativamente: Solo los necesarios para la palabra + 60 de ambiente
+           
             const totalRequired = wordPoints.length + 60;
             for (let i = 0; i < totalRequired; i++) {
                 particles.push(new Nanobot(i));
@@ -396,7 +396,7 @@
                 p.draw();
             }
             if (!isAssembling && !isAlertMode) {
-                for (let i = 0; i < particles.length; i += 4) { // Menos conexiones visuales
+                for (let i = 0; i < particles.length; i += 4) {
                     for (let j = i + 1; j < i + 2; j++) {
                         if (!particles[j]) continue;
                         let dx = particles[i].x - particles[j].x;

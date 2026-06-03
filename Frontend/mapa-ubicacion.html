@@ -171,7 +171,7 @@
 
             // Función interna para intentar buscar y posicionar
             async function intentarBusqueda(texto) {
-                // Añadimos ", Bogotá, Colombia" para centrar la búsqueda si el usuario no lo puso
+                
                 let query = texto;
                 if (!query.toLowerCase().includes("bogota")) query += ", Bogotá, Colombia";
 
@@ -186,7 +186,7 @@
                 status.innerText = "Buscando aproximación de la vía principal...";
                 status.style.display = "block";
 
-                // Ejemplo: "Cra. 32b #22b-29" -> busca "Cra. 32b con 22b" o solo la vía
+                
                 let simplificada = direccionOriginal.split("#")[0].trim();
                 data = await intentarBusqueda(simplificada);
             }
@@ -341,7 +341,7 @@
             status.innerText = "Obteniendo coordenadas de alta precisión...";
             status.style.display = "block";
 
-            // Configuramos ALTA PRECISIÓN para evitar que te mande al Oxxo
+            // Configuramos ALTA PRECISIÓN
             const options = {
                 enableHighAccuracy: true,
                 timeout: 5000,
@@ -372,7 +372,7 @@
         // Función unificada para poner el marcador y permitir corregirlo manualmente
         function actualizarPuntoEnMapa(lat, lon, titulo) {
             coordenadaActual = { lat, lon };
-            map.setView([lat, lon], 18); // Zoom más cercano para ver la calle
+            map.setView([lat, lon], 18); 
 
             if (marcador) map.removeLayer(marcador);
 
@@ -381,7 +381,7 @@
                 .bindPopup(`<b>${titulo}</b><br>¡Puedes arrastrarme hasta la puerta exacta!`)
                 .openPopup();
 
-            // Evento: Cuando terminas de arrastrar el marcador, se actualiza la coordenada
+            
             marcador.on('dragend', function (event) {
                 const position = marcador.getLatLng();
                 coordenadaActual = { lat: position.lat, lon: position.lng };

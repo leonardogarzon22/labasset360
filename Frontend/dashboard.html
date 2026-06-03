@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ===== ESTILOS ORIGINALES MANTENIDOS ===== */
+        
         * {
             margin: 0;
             padding: 0;
@@ -133,7 +133,7 @@
             color: #1C2C70;
         }
 
-        /* NUEVOS ESTILOS PARA INDICADORES DEBAJO DEL GRÁFICO */
+        
         .resumen-flota-extra {
             display: flex;
             justify-content: space-around;
@@ -303,7 +303,7 @@
                 document.getElementById('kpi-cal').innerText = data.kpis.calibraciones;
                 document.getElementById('kpi-salud').innerText = data.kpis.salud_general + "%";
 
-                // Gráfico (y los nuevos contadores calculados adentro)
+                
                 renderizarGrafico(data.grafico);
 
                 // Tabla Críticos
@@ -341,7 +341,7 @@
             const ctx = document.getElementById('chartEstados').getContext('2d');
             if (myChart) myChart.destroy();
 
-            // --- CÁLCULO DE TOTALES PARA LOS TEXTOS INFERIORES ---
+           
             let totalFuera = 0;
             let totalActivos = 0;
 
@@ -359,7 +359,7 @@
             document.getElementById('txt-activos-sum').innerText = totalActivos;
             document.getElementById('txt-no-operativos-sum').innerText = totalFuera;
 
-            // --- RENDERIZADO DEL GRÁFICO (MANTIENE ESTRUCTURA ORIGINAL) ---
+            
             myChart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -397,7 +397,7 @@
     </div>
 
     <style>
-        /* Mantiene tu lógica original de fondo rojo y pulso */
+        
         #voice-indicator.active {
             background: #e74c3c !important;
             animation: pulseVoice 1.5s infinite;

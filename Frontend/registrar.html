@@ -241,7 +241,7 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    // El servidor respondió con un error (ej: 400 Bad Request por área duplicada)
+                    // El servidor respondió con un error
                     mostrarError(`❌ Error de Validación: ${data.detail || 'Verifique los datos'}`);
                     activarAlertaVisual();
                     btn.disabled = false;
