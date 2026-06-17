@@ -33,7 +33,7 @@ pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# Validación crítica para producción
+
 if not SECRET_KEY:
     raise RuntimeError("CRÍTICO: La variable de entorno 'SECRET_KEY' no está configurada.")
 
@@ -68,7 +68,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise credentials_exception
     return user
 
-# Crear carpeta de subidas si no existe
+
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
@@ -83,12 +83,12 @@ def home():
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", StaticFiles(directory="../Frontend"), name="static")
 
-# Página de registro
+
 @app.get("/registro")
 def registro_page():
     return FileResponse("Frontend/registrar.html")
 
-# Página login
+
 @app.get("/login")
 def login_page():
     return FileResponse("Frontend/login.html")
@@ -113,7 +113,7 @@ def actualizar_estados_vencidos(equipo_id: str, db: Session):
 
     hoy = date.today()
 
-    # 🔧 MANTENIMIENTOS
+    # MANTENIMIENTOS
     mantenimientos = db.query(models.Mantenimiento).filter(
         models.Mantenimiento.equipo_id == equipo_id,
         models.Mantenimiento.estado != "completado"
@@ -123,7 +123,7 @@ def actualizar_estados_vencidos(equipo_id: str, db: Session):
         if m.fecha_programada and m.fecha_programada < hoy:
             m.estado = "vencido"
 
-    # 🧪 CALIBRACIONES
+    # CALIBRACIONES
     calibraciones = db.query(models.Calibracion).filter(
         models.Calibracion.equipo_id == equipo_id,
         models.Calibracion.estado != "completado"
@@ -137,31 +137,26 @@ def actualizar_estados_vencidos(equipo_id: str, db: Session):
 
 def calcular_weibull(equipo, db, hoy):
 
-    # 1️⃣ Validación básica
+   
     if not equipo.fecha_inicio_operacion:
         return 100
 
-    # 2️⃣ Tiempo calendario en días
     t = (hoy - equipo.fecha_inicio_operacion).days
 
     if t <= 0:
         return 100
 
-    # 3️⃣ Calcular horas acumuladas automáticamente (8h promedio/día)
     equipo.horas_acumuladas = t * 8
 
-    # 4️⃣ Obtener mantenimientos correctivos completados
     correctivos = db.query(models.Mantenimiento).filter(
         models.Mantenimiento.equipo_id == equipo.id,
         models.Mantenimiento.tipo == "correctivo",
         models.Mantenimiento.estado == "completado"
     ).all()
 
-    # 5️⃣ Si nunca ha fallado → confiabilidad alta
     if len(correctivos) == 0:
         return 100
 
-    # 6️⃣ Calcular impacto ponderado real
     impacto_total = 0
     tiempo_total_paro = 0
 
@@ -169,13 +164,11 @@ def calcular_weibull(equipo, db, hoy):
         severidad = c.severidad or 1
         dias_paro = c.tiempo_fuera_servicio or 0
 
-        # Impacto ponderado industrial
         impacto = severidad * (1 + dias_paro * 0.05)
 
         impacto_total += impacto
         tiempo_total_paro += dias_paro
 
-    # 7️⃣ Parámetro beta dinámico
     frecuencia = impacto_total / t
 
     if frecuencia < 0.001:
@@ -185,14 +178,13 @@ def calcular_weibull(equipo, db, hoy):
     else:
         beta = 2.5
 
-    # 8️⃣ Parámetro eta (vida característica ajustada)
+    #  Parámetro eta
     eta = t / impacto_total
     eta = max(eta, 1)
 
-    # 9️⃣ Función Weibull
+    # Función Weibull
     R_t = math.exp(-((t / eta) ** beta))
 
-    # 🔟 Penalización adicional por tiempo total parado
     penalizacion_disponibilidad = min(tiempo_total_paro * 0.2, 20)
 
     salud = (R_t * 100) - penalizacion_disponibilidad
@@ -208,15 +200,14 @@ def recalcular_indice_salud(equipo_id: str, db: Session):
     if not equipo:
         return
 
-    # 1️⃣ Actualizar vencidos
     actualizar_estados_vencidos(equipo_id, db)
 
     hoy = date.today()
 
-    # 2️⃣ WEIBULL (40%)
+    # WEIBULL
     score_weibull = calcular_weibull(equipo, db, hoy) * 0.40
 
-    # 3️⃣ MANTENIMIENTOS VENCIDOS (20%)
+    # MANTENIMIENTOS VENCIDOS
     mantenimientos_vencidos = db.query(models.Mantenimiento).filter(
         models.Mantenimiento.equipo_id == equipo_id,
         models.Mantenimiento.estado == "vencido"
@@ -224,7 +215,7 @@ def recalcular_indice_salud(equipo_id: str, db: Session):
 
     score_mantenimiento = max(0, 20 - (mantenimientos_vencidos * 5))
 
-    # 4️⃣ CALIBRACIONES VENCIDAS (20%)
+    # CALIBRACIONES VENCIDAS
     calibraciones_vencidas = db.query(models.Calibracion).filter(
         models.Calibracion.equipo_id == equipo_id,
         models.Calibracion.estado == "vencida"
@@ -232,7 +223,7 @@ def recalcular_indice_salud(equipo_id: str, db: Session):
 
     score_calibracion = max(0, 20 - (calibraciones_vencidas * 10))
 
-    # 5️⃣ EVALUACIÓN ISO (10%)
+    # EVALUACIÓN ISO
     ultima_eval = db.query(models.EvaluacionEquipo).filter(
         models.EvaluacionEquipo.equipo_id == equipo_id
     ).order_by(models.EvaluacionEquipo.fecha.desc()).first()
@@ -241,7 +232,7 @@ def recalcular_indice_salud(equipo_id: str, db: Session):
     if ultima_eval and ultima_eval.resultado_global.lower() == "no cumple":
         score_iso = 0
 
-    # 6️⃣ DISPONIBILIDAD / ESTADO (10%)
+    # DISPONIBILIDAD / ESTADO
     score_estado = 10
 
     if equipo.estado:
@@ -254,7 +245,7 @@ def recalcular_indice_salud(equipo_id: str, db: Session):
         elif estado == "en prestamo":
             score_estado = 8
 
-    # 7️⃣ SUMATORIA FINAL
+    #SUMATORIA FINAL
     salud = (
         score_weibull +
         score_mantenimiento +
@@ -295,9 +286,8 @@ def evaluar_resultado(r):
             return "No cumple"
 
     return "No cumple"
-# =====================================
+
 # ENDPOINTS DE EQUIPOS
-# =====================================
 
 @app.get("/api/tipos-equipos")
 def listar_tipos(db: Session = Depends(get_db)):
@@ -389,9 +379,9 @@ async def actualizar_equipo(
     db.refresh(equipo)
     return equipo
 
-# =====================================
-# GESTIÓN DE PRÉSTAMOS (AHORA USANDO JSON)
-# =====================================
+
+# GESTIÓN DE PRÉSTAMOS
+
 
 @app.post("/api/prestamos/salir")
 def registrar_salida(
@@ -448,9 +438,8 @@ def registrar_regreso(
 
     return {"status": "success", "message": "Devolución registrada correctamente"}
 
-# =====================================
+
 # CONSULTAS DE PRÉSTAMOS
-# =====================================
 
 @app.get("/api/equipos/{equipo_id}/ultimo-prestamo")
 def obtener_ultimo_prestamo(equipo_id: str, db: Session = Depends(get_db)):
@@ -465,13 +454,8 @@ def obtener_historial_prestamos(equipo_id: str, db: Session = Depends(get_db)):
         models.Prestamo.equipo_id == equipo_id
     ).order_by(models.Prestamo.fecha_salida.desc()).all()
 
-# =====================================
-# FINALIZAR ACTIVIDADES TÉCNICAS
-# =====================================
 
-# =====================================
 # CONFIRMACION DE APTITUD ISO 17025
-# =====================================
 
 @app.get("/api/pruebas-por-equipo/{nombre_equipo}")
 def obtener_pruebas_por_equipo(nombre_equipo: str, db: Session = Depends(get_db)):
@@ -518,7 +502,7 @@ def evaluar_equipo(data: schemas.EvaluacionEquipoCreate, db: Session = Depends(g
             cumple_global = False
 
         db.add(resultado)
-        db.flush()  # 👈 permite acceder a la relación sin commit
+        db.flush()
 
         resultados_guardados.append({
             "prueba_nombre": resultado.prueba.nombre,
@@ -577,13 +561,10 @@ def obtener_evaluaciones_equipo(equipo_id: str, db: Session = Depends(get_db)):
         })
 
     return resultado
-# =====================================
+
 # MANTENIMIENTOS
-# =====================================
 
-# main.py
 
-# 1. Endpoint para PROGRAMAR (Modal 1)
 @app.post("/api/equipos/{equipo_id}/mantenimientos")
 def crear_mantenimiento(
     equipo_id: str,
@@ -593,9 +574,8 @@ def crear_mantenimiento(
     nuevo = models.Mantenimiento(
         equipo_id=equipo_id,
         fecha_programada=data.fecha_programada,
-        # ASIGNACIÓN CORRECTA:
-        tecnico=data.tecnico,      # El técnico va a la columna tecnico
-        descripcion=data.descripcion, # La descripción va a la columna descripcion
+        tecnico=data.tecnico,      
+        descripcion=data.descripcion,
         tipo=data.tipo,
         estado=data.estado
     )
@@ -604,14 +584,13 @@ def crear_mantenimiento(
     db.refresh(nuevo)
     return nuevo
 
-# 2. Endpoint para EJECUTAR y cargar archivo (Modal 2)
 @app.put("/api/mantenimientos/{mantenimiento_id}/ejecutar")
 async def ejecutar_mantenimiento(
     mantenimiento_id: int,
     fecha_realizada: str = Form(...),
-    tecnico: str = Form(...),        # Nombre del técnico
+    tecnico: str = Form(...),        
     costo: float = Form(0.0),
-    observaciones: str = Form(""),   # Lo que hizo el técnico
+    observaciones: str = Form(""),  
     tiempo_fuera_servicio: int = Form(0),
     severidad: int = Form(1),
     soporte: UploadFile = File(None),
@@ -627,11 +606,10 @@ async def ejecutar_mantenimiento(
             shutil.copyfileobj(soporte.file, buffer)
         mant.soporte_url = f"/{file_path}"
 
-    # --- CORRECCIÓN DE COLUMNAS ---
     mant.fecha_realizada = datetime.strptime(fecha_realizada, '%Y-%m-%d').date()
-    mant.tecnico = tecnico          # Se guarda en la columna tecnico
-    mant.descripcion = observaciones # Las observaciones van a descripcion
-    # ------------------------------
+    mant.tecnico = tecnico          
+    mant.descripcion = observaciones 
+
 
     mant.costo = costo
     mant.estado = "completado"
@@ -651,22 +629,18 @@ def listar_mantenimientos(
         models.Mantenimiento.equipo_id == equipo_id
     ).order_by(models.Mantenimiento.fecha_programada.desc()).all()
 
-# =====================================
-# ENDPOINT PARA EVALUACIÓN EXISTENTE
-# =====================================
+
+# ENDPOINT PARA EVALUACIÓN
+
 
 @app.get("/api/evaluacion-existente/{equipo_id}")
 def obtener_evaluacion(equipo_id: str, db: Session = Depends(get_db)):
-    # Buscamos la última evaluación registrada para este equipo
     evaluacion = db.query(models.EvaluacionEquipo).filter(
         models.EvaluacionEquipo.equipo_id == equipo_id
     ).order_by(models.EvaluacionEquipo.id.desc()).first()
 
-    # Si no hay evaluación, devolvemos una lista vacía para que el frontend no de error
     if not evaluacion:
         return []
-
-    # Devolvemos los resultados de las pruebas de esa evaluación
     return [
         {
             "prueba_nombre": r.prueba.nombre if r.prueba else "N/A",
@@ -678,15 +652,12 @@ def obtener_evaluacion(equipo_id: str, db: Session = Depends(get_db)):
     ]
 
 
+# CALIBRACIONES
 
-# =====================================
-# CALIBRACIONES (VERSIÓN CORREGIDA)
-# =====================================
 
 @app.get("/api/equipos/{equipo_id}/calibraciones", response_model=List[schemas.CalibracionSchema])
 def listar_calibraciones(equipo_id: str, db: Session = Depends(get_db)):
     try:
-        # Usamos una consulta que evita errores si faltan columnas en la BD
         return db.query(models.Calibracion).filter(
             models.Calibracion.equipo_id == equipo_id
         ).order_by(models.Calibracion.id.desc()).all()
@@ -722,18 +693,16 @@ async def finalizar_calibracion(
     return {"message": "Éxito", "url": cal.certificado_url}
 
 
-# Cambia schemas.Calibracion por schemas.CalibracionSchema
 @app.post("/api/equipos/{equipo_id}/calibraciones", response_model=schemas.CalibracionSchema)
 def crear_calibracion(
     equipo_id: str,
-    calibracion: schemas.CalibracionCreate, # Este nombre sí existe en tu schemas.py
+    calibracion: schemas.CalibracionCreate,
     db: Session = Depends(get_db)
 ):
     db_equipo = db.query(models.Equipo).filter(models.Equipo.id == equipo_id).first()
     if not db_equipo:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
 
-    # Se crea la instancia usando los datos validados
     nueva_cal = models.Calibracion(
         **calibracion.dict(),
         equipo_id=equipo_id,
@@ -798,9 +767,7 @@ def reprogramar_calibracion(
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# =====================================
 # RECALCULAR INDICE DE SALUD
-# =====================================
 
 @app.post("/api/equipos/{equipo_id}/recalcular-salud")
 def recalcular_salud(equipo_id: str, db: Session = Depends(get_db)):
@@ -823,20 +790,12 @@ def recalcular_salud(equipo_id: str, db: Session = Depends(get_db)):
 
 @app.post("/api/fallas", response_model=schemas.FallaResponse)
 def registrar_falla(falla: schemas.FallaCreate, db: Session = Depends(get_db)):
-    # 1. Buscar el equipo
     equipo = db.query(models.Equipo).filter(models.Equipo.id == falla.equipo_id).first()
     if not equipo:
         raise HTTPException(status_code=404, detail="Equipo no encontrado")
-    
-    # 2. Lógica de negocio: Estado y Salud
-    # Pasamos a "En revisión" automáticamente
     equipo.estado = "En revisión"
-    
-    # Penalización de salud: Baja(5), Media(10), Alta(20), Crítica(30)
     reduccion = {"baja": 5, "media": 10, "alta": 20, "critica": 30}
     equipo.indice_salud = max(0, equipo.indice_salud - reduccion.get(falla.urgencia.lower(), 5))
-
-    # 3. Registrar en la tabla 'fallas' (sin tocar mantenimientos)
     nueva_falla = models.Falla(
         equipo_id=equipo.id,
         tipo=falla.tipo,
@@ -844,12 +803,11 @@ def registrar_falla(falla: schemas.FallaCreate, db: Session = Depends(get_db)):
         descripcion=falla.descripcion
     )
     
-    # 4. Transacción atómica
     try:
         db.add(nueva_falla)
         db.commit()
         db.refresh(nueva_falla)
-        db.refresh(equipo) # Actualizamos el equipo para reflejar cambios
+        db.refresh(equipo)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail="Error al procesar el reporte")
@@ -892,7 +850,6 @@ async def finalizar_calibracion(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(certificado.file, buffer)
 
-        # Guardamos la ruta en base de datos
         cal.certificado_url = f"/uploads/cal_{cal_id}_{certificado.filename}"
 
 
@@ -906,22 +863,20 @@ def obtener_dashboard_stats(db: Session = Depends(get_db)):
     hoy = date.today()
     proximos_7_dias = hoy + timedelta(days=7)
 
-    # 1. KPIs de cabecera
+    # 1. KPIs
     total_equipos = db.query(models.Equipo).count()
     equipos_operativos = db.query(models.Equipo).filter(func.lower(models.Equipo.estado) == "operativo").count()
     porcentaje_operativos = round((equipos_operativos / total_equipos * 100)) if total_equipos > 0 else 0
 
-    # 2. Distribución para el Gráfico (Dona)
+    # 2. Distribución del Gráfico
     conteo_estados = db.query(models.Equipo.estado, func.count(models.Equipo.id)).group_by(models.Equipo.estado).all()
     stats_grafico = {estado: conteo for estado, conteo in conteo_estados}
 
     # 3. Equipos Críticos (Salud < 50%)
     equipos_criticos = db.query(models.Equipo).filter(models.Equipo.indice_salud < 50).order_by(models.Equipo.indice_salud.asc()).all()
 
-    # --- 4. LÓGICA DE ALERTAS DISPARADAS ---
     alertas_lista = []
 
-    # A. Mantenimientos Vencidos (Urgencia Máxima)
     mants_vencidos = db.query(models.Mantenimiento).filter(
         models.Mantenimiento.estado != "completado",
         models.Mantenimiento.fecha_programada < hoy
@@ -933,7 +888,6 @@ def obtener_dashboard_stats(db: Session = Depends(get_db)):
             "clase": "vencido"
         })
 
-    # B. Calibraciones Vencidas (Urgencia Máxima)
     cals_vencidas = db.query(models.Calibracion).filter(
         models.Calibracion.estado != "completado",
         models.Calibracion.fecha_programada < hoy
@@ -945,7 +899,6 @@ def obtener_dashboard_stats(db: Session = Depends(get_db)):
             "clase": "vencido"
         })
 
-    # C. Mantenimientos Próximos (Próximos 7 días)
     mants_prox = db.query(models.Mantenimiento).filter(
         models.Mantenimiento.estado != "completado",
         models.Mantenimiento.fecha_programada >= hoy,
@@ -975,7 +928,7 @@ def obtener_dashboard_stats(db: Session = Depends(get_db)):
             "ubicacion": e.ubicacion or "N/A",
             "salud": e.indice_salud
         } for e in equipos_criticos[:5]],
-        "alertas": alertas_lista[:10]  # Mostramos hasta 10 alertas mezcladas
+        "alertas": alertas_lista[:10]
     }
 
 
@@ -1056,38 +1009,28 @@ def obtener_historial_ubicaciones(equipo_id: UUID, db: Session = Depends(get_db)
         .all()
     )
 
-# @app.get("/api/equipos/{equipo_id}/ubicaciones")
-# def listar_ubicaciones(equipo_id: str, db: Session = Depends(get_db)):
-    # return db.query(models.UbicacionEquipo).filter(
-        # models.UbicacionEquipo.equipo_id == equipo_id
-    # ).order_by(models.UbicacionEquipo.fecha_registro.desc()).all()
-
 @app.post("/api/registro", response_model=schemas.UsuarioResponse)
 def registrar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
-    # 1. Verificar si el email ya existe
+    
     db_user = db.query(models.Usuario).filter(models.Usuario.email == usuario.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="El email ya está registrado")
 
-    # 2. Buscar o crear la empresa
     empresa = db.query(models.Empresa).filter(models.Empresa.nombre == usuario.nombre_empresa.strip()).first()
     
     if not empresa:
         empresa = models.Empresa(nombre=usuario.nombre_empresa.strip())
         db.add(empresa)
-        db.flush() # Guarda la empresa temporalmente para obtener su ID sin hacer commit final
+        db.flush()
 
-    # 3. Verificar áreas críticas (Modificado para que valide POR EMPRESA)
     areas_criticas = ['Calidad', 'Dirección Laboratorio', 'Coordinación Laboratorio']
     if usuario.area in areas_criticas:
         existe_area = db.query(models.Usuario).filter(
             models.Usuario.area == usuario.area,
-            models.Usuario.empresa_id == empresa.id # Validamos que no haya otro en LA MISMA empresa
+            models.Usuario.empresa_id == empresa.id
         ).first()
         if existe_area:
             raise HTTPException(status_code=400, detail=f"Ya existe un responsable para el área de {usuario.area} en esta empresa")
-
-    # 4. Crear usuario vinculado a la empresa
     hashed_pw = pwd_context.hash(usuario.password)
     nuevo_usuario = models.Usuario(
         nombre=usuario.nombre,
@@ -1096,7 +1039,7 @@ def registrar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_
         area=usuario.area,
         email=usuario.email,
         hashed_password=hashed_pw,
-        empresa_id=empresa.id # <--- VINCULACIÓN A LA EMPRESA
+        empresa_id=empresa.id
     )
 
     try:
@@ -1115,7 +1058,6 @@ def login(usuario: UsuarioLogin, db: Session = Depends(get_db)):
     if not user or not pwd_context.verify(usuario.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    # Generamos el token guardando el email del usuario en él
     access_token = crear_token_acceso(data={"sub": user.email})
     
     return {
@@ -1146,6 +1088,7 @@ def registrar_ubicacion(equipo_id: UUID, datos: UbicacionCreate, db: Session = D
     db.refresh(nueva_ubicacion)
 
     return nueva_ubicacion
+
 @app.get("/api/equipos/{equipo_id}/ubicaciones", response_model=list[UbicacionResponse])
 def obtener_historial(equipo_id: UUID, db: Session = Depends(get_db)):
 

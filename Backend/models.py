@@ -8,11 +8,6 @@ from datetime import datetime
 from sqlalchemy import Index
 
 
-
-# =====================================
-# TIPOS DE EQUIPO
-# =====================================
-
 class TipoEquipo(Base):
     __tablename__ = "tipos_equipos"
 
@@ -24,9 +19,6 @@ class TipoEquipo(Base):
     equipos = relationship("Equipo", back_populates="tipo_relacion")
 
 
-# =====================================
-# EQUIPOS
-# =====================================
 class Empresa(Base):
     __tablename__ = "empresas"
 
@@ -34,7 +26,6 @@ class Empresa(Base):
     nombre = Column(String, unique=True, index=True, nullable=False)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
 
-    # Relaciones
     usuarios = relationship("Usuario", back_populates="empresa")
     equipos = relationship("Equipo", back_populates="empresa")
     
@@ -54,22 +45,18 @@ class Equipo(Base):
     modelo = Column(String)
     serial = Column(String)
     ubicacion = Column(String)
-    nivel_uso = Column(String)  # bajo, medio, alto
+    nivel_uso = Column(String)
 
-    # Gestión
     estado = Column(String, default="Operativo")
     responsable = Column(String, nullable=True)
 
-    # Salud
     indice_salud = Column(Float, default=100)
     fecha_inicio_operacion = Column(Date)
     horas_acumuladas = Column(Float, default=0)
 
-    # Documentación
     manual_url = Column(String, nullable=True)
     observaciones_iniciales = Column(Text, nullable=True)
 
-    # Relaciones nuevas
     prestamos_relacion = relationship(
         "Prestamo",
         back_populates="equipo",
@@ -88,13 +75,10 @@ class Equipo(Base):
         cascade="all, delete-orphan"
     )
     
-    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False) # <--- NUEVO
+    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
     empresa = relationship("Empresa", back_populates="equipos")
 
 
-# =====================================
-# PRÉSTAMOS
-# =====================================
 
 class Prestamo(Base):
     __tablename__ = "prestamos"
@@ -102,13 +86,11 @@ class Prestamo(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     equipo_id = Column(UUID(as_uuid=True), ForeignKey("equipos.id"))
 
-    # Salida
     fecha_salida = Column(Date, default=date.today)
     responsable_prestamo = Column(String)
     condiciones_salida = Column(Text)
     observaciones_salida = Column(Text, nullable=True)
 
-    # Regreso
     fecha_regreso = Column(Date, nullable=True)
     condiciones_regreso = Column(Text, nullable=True)
     observaciones_regreso = Column(Text, nullable=True)
@@ -118,34 +100,27 @@ class Prestamo(Base):
     equipo = relationship("Equipo", back_populates="prestamos_relacion")
 
 
-# =====================================
-# MANTENIMIENTOS
-# =====================================
-
-# models.py
 class Mantenimiento(Base):
     __tablename__ = "mantenimientos"
 
     id = Column(Integer, primary_key=True, index=True)
     equipo_id = Column(UUID(as_uuid=True), ForeignKey("equipos.id"))
 
-    tipo = Column(String)  # preventivo / correctivo
+    tipo = Column(String)
     descripcion = Column(Text, nullable=True)
 
     fecha_programada = Column(Date)
     fecha_realizada = Column(Date, nullable=True)
 
-    # Nuevo campo para el técnico que ejecuta
     tecnico = Column(String, nullable=True)
 
     estado = Column(String, default="pendiente")
     costo = Column(Float, nullable=True)
     observaciones_modificacion = Column(Text, nullable=True)
 
-    tiempo_fuera_servicio = Column(Integer, nullable=True)  # días parado
-    severidad = Column(Integer, default=1)  # 1 leve, 2 media, 3 grave
+    tiempo_fuera_servicio = Column(Integer, nullable=True)
+    severidad = Column(Integer, default=1)
 
-    # Campo CRÍTICO para los archivos
     soporte_url = Column(String, nullable=True)
 
     creado_en = Column(Date, default=date.today)
@@ -157,30 +132,22 @@ class Mantenimiento(Base):
         nullable=True
     )
 
-
-# =====================================
-# CALIBRACIONES
-# =====================================
-
 class Calibracion(Base):
     __tablename__ = "calibraciones"
 
     id = Column(Integer, primary_key=True, index=True)
     equipo_id = Column(UUID(as_uuid=True), ForeignKey("equipos.id"))
 
-    # Datos de Programación
-    tipo = Column(String)  # Calibración, Calificación, Validación
+    tipo = Column(String)
     fecha_programada = Column(Date, nullable=False)
     proveedor = Column(String, nullable=True)
 
-    # Datos de Ejecución (se llenan al finalizar)
     fecha_realizada = Column(Date, nullable=True)
-    resultado = Column(String, nullable=True)  # Conforme / No Conforme
+    resultado = Column(String, nullable=True)
     certificado_url = Column(String, nullable=True)
     observaciones = Column(Text, nullable=True)
 
-    # Control de flujo
-    estado = Column(String, default="pendiente") # pendiente / completado
+    estado = Column(String, default="pendiente")
 
     equipo = relationship("Equipo", back_populates="calibraciones")
     
@@ -189,10 +156,6 @@ class Calibracion(Base):
         ForeignKey("calibraciones.id"),
         nullable=True
     )
-
-# =====================================
-# PRUEBAS TECNICAS ISO 17025
-# =====================================
 
 class PruebaTecnica(Base):
     __tablename__ = "prueba_tecnica"
@@ -222,7 +185,7 @@ class EvaluacionEquipo(Base):
 
     fecha = Column(Date, default=date.today)
     responsable = Column(String, nullable=False)
-    resultado_global = Column(String)  # Cumple / No cumple
+    resultado_global = Column(String)
     observaciones = Column(Text, nullable=True)
 
     resultados = relationship(
@@ -241,7 +204,6 @@ class ResultadoPrueba(Base):
 
     valor_obtenido = Column(String)
 
-    # 🔹 NUEVOS CAMPOS TÉCNICOS
     criterio_aplicado = Column(Text)
     valor_min = Column(Float, nullable=True)
     valor_max = Column(Float, nullable=True)
@@ -256,8 +218,8 @@ class UbicacionEquipo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     equipo_id = Column(UUID(as_uuid=True), ForeignKey("equipos.id"))
-    nombre_personalizado = Column(String) # Ejemplo: SGI SAS
-    direccion_texto = Column(String)      # Ejemplo: Calle 153A # 7H-72
+    nombre_personalizado = Column(String)
+    direccion_texto = Column(String) 
     latitud = Column(Float)
     longitud = Column(Float)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
@@ -275,11 +237,9 @@ class Usuario(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
-    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False) # <--- NUEVO
+    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False)
     empresa = relationship("Empresa", back_populates="usuarios")
 
-# Índice único condicional para áreas críticas
-# Esto evita que se inserte más de un registro si el área es una de las 3 restringidas
 Index(
     "idx_unico_area_critica",
     Usuario.area,
@@ -310,7 +270,7 @@ class Falla(Base):
     __tablename__ = "fallas"
     id = Column(Integer, primary_key=True, index=True)
     equipo_id = Column(UUID(as_uuid=True), ForeignKey("equipos.id"), nullable=False)
-    tipo = Column(String)  # Mecánica, Eléctrica, etc.
+    tipo = Column(String)
     urgencia = Column(String)
     descripcion = Column(Text)
     fecha_reporte = Column(DateTime, default=datetime.utcnow)

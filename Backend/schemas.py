@@ -6,12 +6,6 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from typing import Union
 
-
-
-# =====================================
-# EQUIPOS
-# =====================================
-
 class EmpresaResponse(BaseModel):
     id: int
     nombre: str
@@ -48,12 +42,6 @@ class EquipoResponse(EquipoBase):
     class Config:
         from_attributes = True
 
-
-# =====================================
-# MANTENIMIENTOS
-# =====================================
-
-# schemas.py
 class MantenimientoBase(BaseModel):
     tipo: str
     descripcion: Optional[str] = None
@@ -85,10 +73,6 @@ class ReprogramarMantenimiento(BaseModel):
     fecha_programada: date
     observaciones_modificacion: Optional[str] = None
 
-# =====================================
-# PRÉSTAMOS
-# =====================================
-
 class PrestamoSalida(BaseModel):
     equipo_id: str
     responsable: str
@@ -112,9 +96,6 @@ class PrestamoResponse(BaseModel):
 
     class Config:
         from_attributes = True
-# =====================================
-# CONFIRMACION DE APTITUD ISO 17025
-# =====================================
 
 class ResultadoPruebaCreate(BaseModel):
     prueba_id: int
@@ -155,9 +136,6 @@ class EvaluacionEquipoResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# =====================================
-# CALIBRACIONES
-# =====================================
 
 class CalibracionCreate(BaseModel):
     fecha_programada: date
@@ -218,7 +196,6 @@ class UsuarioLogin(BaseModel):
     email: EmailStr
     password: str
     
-# En schemas.py, asegúrate de tener esto:
 
 class FallaCreate(BaseModel):
     equipo_id: Union[str, UUID]
