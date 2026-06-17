@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>LabAsset 360 - Nuevo Equipo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/all.min.css">
+
     <style>
         * {
             margin: 0;
@@ -23,22 +23,16 @@
             min-height: 100vh;
         }
 
-        /* Sidebar consistente con el ecosistema */
         .sidebar {
             width: 250px;
             background: linear-gradient(180deg, #243B8F, #1C2C70);
             color: white;
             padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
 
-        .sidebar-menu h2 {
+        .sidebar h2 {
             margin-bottom: 40px;
             font-weight: 600;
-            font-size: 1.5rem;
-            letter-spacing: -0.5px;
         }
 
         .sidebar ul {
@@ -51,75 +45,40 @@
             margin-bottom: 10px;
             cursor: pointer;
             transition: 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
-        .sidebar li:hover,
-        .sidebar li.active {
-            background: rgba(255, 255, 255, 0.15);
+        .sidebar li:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .btn-logout {
-            background: rgba(231, 76, 60, 0.2);
-            color: #e74c3c;
-            border: 1px solid rgba(231, 76, 60, 0.4);
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            text-align: center;
-            transition: 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+        .sidebar .active {
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .btn-logout:hover {
-            background: #e74c3c;
+        .sidebar a {
+            text-decoration: none;
             color: white;
+            display: block;
+            width: 100%;
+            height: 100%;
         }
 
-        .main-content {
+        .main {
             flex: 1;
-            padding: 40px;
-            overflow-y: auto;
+            padding: 30px;
         }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #111827;
-            font-size: 1.8rem;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .card {
             background: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            font-weight: 600;
-            color: #4b5563;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 900px;
         }
 
-        /* Formulario Estilo ISO */
-        .form-container {
-            background: white;
-            padding: 35px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
-            border-top: 4px solid #243B8F;
-            max-width: 800px;
+        .card h1 {
+            margin-bottom: 25px;
+            font-size: 22px;
         }
 
         .form-grid {
@@ -128,76 +87,85 @@
             gap: 20px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 15px;
-        }
-
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        .form-group label {
-            font-size: 0.9rem;
+        label {
+            font-size: 13px;
             font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            display: block;
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 11px 14px;
-            border: 1px solid #d1d5db;
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 0.95rem;
-            color: #1f2937;
-            outline: none;
-            transition: 0.2s;
+            border: 1px solid #dfe3f0;
+            font-size: 14px;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: #243B8F;
-            box-shadow: 0 0 0 3px rgba(36, 59, 143, 0.15);
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dfe3f0;
+            font-size: 14px;
+            font-family: inherit;
+            grid-column: span 2;
+            height: 80px;
+            resize: none;
         }
 
-        .btn-submit {
-            background: #243B8F;
-            color: white;
-            padding: 14px 28px;
+        /* Contenedor simple para los checks */
+        .check-row {
+            grid-column: span 2;
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+        }
+
+        .check-row div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .check-row input {
+            width: auto;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 18px;
             border: none;
             border-radius: 8px;
-            font-weight: 600;
-            font-size: 1rem;
+            background: #3A5BDB;
+            color: white;
+            font-size: 14px;
             cursor: pointer;
-            transition: 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
         }
 
-        .btn-submit:hover {
-            background: #1C2C70;
+        button:hover {
+            background: #2e47b8;
         }
 
-        .btn-submit:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
-        }
-
-        #error-msg {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.05);
-            border: 1px dashed #ef4444;
+        .info-box {
+            margin-top: 20px;
             padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            font-size: 0.9rem;
+            background: #f1f3fa;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .success {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .error {
+            color: #c62828;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -205,117 +173,201 @@
 <body>
 
     <div class="layout">
-        <div class="sidebar">
-            <div class="sidebar-menu">
-                <h2>LabAsset 360</h2>
-                <ul>
-                    <li onclick="window.location.href='dashboard.html'"><i class="fas fa-chart-pie"></i> Dashboard</li>
-                    <li class="active" onclick="window.location.href='crear-equipo.html'"><i
-                            class="fas fa-plus-circle"></i> Nuevo Equipo</li>
-                    <li onclick="window.location.href='historico.html'"><i class="fas fa-history"></i> Historial</li>
-                    <li onclick="window.location.href='reporte.html'"><i class="fas fa-file-alt"></i> Reportes ISO</li>
-                    <li onclick="window.location.href='mapa-ubicacion.html'"><i class="fas fa-map-marker-alt"></i>
-                        Ubicaciones</li>
-                </ul>
-            </div>
-            <button class="btn-logout" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i> Cerrar
-                Sesión</button>
-        </div>
 
-        <div class="main-content">
-            <div class="header">
-                <div>
-                    <h1>Registro de Nuevo Activo</h1>
-                    <p style="color: #6b7280; font-size: 0.9rem; margin-top: 5px;">Alta de instrumentos en el Inventario
-                        Metrológico de Calidad.</p>
-                </div>
-                <div class="user-profile">
-                    <i class="fas fa-user-flask" style="color: #243B8F;"></i>
-                    <span id="txt-usuario">Científico</span>
-                </div>
-            </div>
+        <aside class="sidebar">
+            <h2>LabAsset 360</h2>
+            <ul>
+                <li>
+                    <a href="dashboard.html">Dashboard</a>
+                </li>
 
-            <div class="form-container">
-                <div id="error-msg"></div>
+                <li class="active">
+                    <a href="nuevo_equipo.html">Crear Equipo</a>
+                </li>
 
-                <form id="form-crear-equipo" onsubmit="enviarFormulario(event)">
+                <li><a href="historico.html">Histórico</a></li>
+                <li><a href="reporte.html">Reportes</a></li>
+                <li><a href="#">Configuración</a></li>
+            </ul>
+        </aside>
+
+        <main class="main">
+            <div class="card">
+
+                <h1>Nuevo Equipo</h1>
+
+                <form id="equipoForm">
+
                     <div class="form-grid">
-                        <div class="form-group">
-                            <label for="codigo">Código del Activo *</label>
-                            <input type="text" id="codigo" placeholder="Ej: BL-001, PH-02" required>
+
+                        <div>
+                            <label>Código</label>
+                            <input type="text" id="codigo" required>
                         </div>
 
-                        <div class="form-group">
-                            <label for="tipo_equipo_id">Tipo / Categoría de Instrumento *</label>
-                            <select id="tipo_equipo_id" required>
-                                <option value="" disabled selected>Cargando categorías...</option>
+                        <div>
+                            <label>Tipo de Equipo</label>
+                            <select id="tipo" required>
+                                <option value="">Cargando...</option>
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label for="marca">Marca</label>
-                            <input type="text" id="marca" placeholder="Ej: Mettler Toledo, Agilent">
+                        <div>
+                            <label>Marca</label>
+                            <input type="text" id="marca">
                         </div>
 
-                        <div class="form-group">
-                            <label for="modelo">Modelo</label>
-                            <input type="text" id="modelo" placeholder="Ej: XP205, Infinity II">
+                        <div>
+                            <label>Modelo</label>
+                            <input type="text" id="modelo">
                         </div>
 
-                        <div class="form-group">
-                            <label for="serial">Número de Serial</label>
-                            <input type="text" id="serial" placeholder="Ej: SN987654321">
+                        <div>
+                            <label>Serial</label>
+                            <input type="text" id="serial">
                         </div>
 
-                        <div class="form-group">
-                            <label for="ubicacion">Ubicación Inicial Interna</label>
-                            <input type="text" id="ubicacion" placeholder="Ej: Laboratorio A, Estante 3">
+                        <div>
+                            <label>Ubicación</label>
+                            <input type="text" id="ubicacion">
                         </div>
 
-                        <div class="form-group">
-                            <label for="nivel_uso">Nivel de Criticidad / Uso *</label>
-                            <select id="nivel_uso" required>
-                                <option value="Bajo">Bajo (Uso esporádico)</option>
-                                <option value="Medio" selected>Medio (Uso diario estándar)</option>
-                                <option value="Alto">Alto (Operación continua / Crítico)</option>
+                        <div>
+                            <label>Nivel de Uso</label>
+                            <select id="uso">
+                                <option value="bajo">Bajo</option>
+                                <option value="medio">Medio</option>
+                                <option value="alto">Alto</option>
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label for="fecha_inicio_operacion">Fecha de Entrada en Operación</label>
+                        <div>
+                            <label>Fecha Inicio de Operación</label>
                             <input type="date" id="fecha_inicio_operacion">
                         </div>
 
-                        <div class="form-group full-width">
-                            <label for="observaciones_iniciales">Observaciones Iniciales de Calibración / Estado</label>
-                            <textarea id="observaciones_iniciales" rows="3"
-                                placeholder="Detalles de recepción del equipo o estado metrológico inicial..."></textarea>
+                        <div class="check-row">
+                            <div><input type="checkbox" id="check_fisico"> <label style="margin:0">Estado Físico
+                                    OK</label></div>
+                            <div><input type="checkbox" id="check_electrico"> <label style="margin:0">Eléctrico
+                                    OK</label></div>
+                            <div><input type="checkbox" id="check_funcional"> <label style="margin:0">Funcional
+                                    OK</label></div>
                         </div>
-                    </div>
 
-                    <button type="submit" class="btn-submit" id="btn-submit">
-                        <i class="fas fa-save"></i> Registrar Activo
-                    </button>
+                        <div style="grid-column: span 2;">
+                            <label>Observaciones de Recepción (Auditoría)</label>
+                            <textarea id="observaciones"
+                                placeholder="Describa el estado en que se recibe el equipo..."></textarea>
+                        </div>
+
+                    </div>
+                    <button type="submit">Registrar Equipo</button>
                 </form>
+
+                <div id="resultado" class="info-box" style="display:none;"></div>
+
             </div>
-        </div>
+        </main>
     </div>
 
+    <script>
+
+        const API_URL = "https://labasset360.onrender.com";
+
+        /* ===== CARGAR TIPOS ===== */
+        async function cargarTipos() {
+            try {
+                let res = await fetch(`${API_URL}/api/tipos-equipos`);
+                let data = await res.json();
+                let select = document.getElementById("tipo");
+
+                select.innerHTML = '<option value="">Seleccionar</option>';
+
+                data.forEach(tipo => {
+                    select.innerHTML += `<option value="${tipo.id}">
+${tipo.nombre} - ${tipo.categoria} (Criticidad: ${tipo.criticidad_total})
+</option>`;
+                });
+
+            } catch (error) {
+                console.error("Error cargando tipos", error);
+            }
+        }
+
+        cargarTipos();
+
+
+        /* ===== REGISTRAR EQUIPO ===== */
+        document.getElementById("equipoForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            // Estructurar el texto de auditoría para enviar al backend
+            const auditoriaInfo = `
+ESTADO FÍSICO: ${document.getElementById('check_fisico').checked ? 'CONFORME' : 'NO CONFORME'}
+ESTADO ELÉCTRICO: ${document.getElementById('check_electrico').checked ? 'CONFORME' : 'NO CONFORME'}
+FUNCIONAMIENTO: ${document.getElementById('check_funcional').checked ? 'CONFORME' : 'NO CONFORME'}
+NOTAS: ${document.getElementById('observaciones').value}
+`.trim();
+
+            let equipoData = {
+                codigo: document.getElementById("codigo").value,
+                tipo_equipo_id: parseInt(document.getElementById("tipo").value),
+                marca: document.getElementById("marca").value,
+                modelo: document.getElementById("modelo").value,
+                serial: document.getElementById("serial").value,
+                ubicacion: document.getElementById("ubicacion").value,
+                nivel_uso: document.getElementById("uso").value,
+                fecha_inicio_operacion: document.getElementById("fecha_inicio_operacion").value || null,
+                observaciones_iniciales: auditoriaInfo
+            };
+
+            try {
+
+                let res = await fetch(`${API_URL}/api/equipos`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(equipoData)
+                });
+
+                let data = await res.json();
+
+                document.getElementById("resultado").style.display = "block";
+                document.getElementById("resultado").innerHTML = `
+<span class="success">Equipo registrado correctamente</span><br><br>
+ID: ${data.id}<br>
+Índice Salud Inicial: ${data.indice_salud}
+`;
+
+            } catch (error) {
+
+                document.getElementById("resultado").style.display = "block";
+                document.getElementById("resultado").innerHTML = `
+<span class="error">Error al registrar equipo</span>
+`;
+
+            }
+
+        });
+
+    </script>
     <div id="voice-indicator"
         style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
         onclick="VoiceEngine.toggle()">
-        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
-            style="width: 110px; height: 110px; object-fit: contain;">
-        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
-            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+        <!-- Imagen por defecto (Desactivado) -->
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado" style="width: 110px; height: 110px; object-fit: contain;">
+        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado" style="width: 110px; height: 110px; object-fit: contain; display: none;">
     </div>
 
     <style>
+        
         #voice-indicator.active {
             background: #e74c3c !important;
             animation: pulseVoice 1.5s infinite;
         }
 
+        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
         #voice-indicator.active .icon-off {
             display: none !important;
         }
@@ -328,11 +380,9 @@
             0% {
                 box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
             }
-
             70% {
                 box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
             }
-
             100% {
                 box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
             }
@@ -340,144 +390,7 @@
     </style>
 
     <script src="js/voice-engine.js"></script>
-
-    <script>
-        // ==========================================
-        // 1. BLINDAJE DE SEGURIDAD (AUTH GUARD)
-        // ==========================================
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = "index.html";
-        }
-
-        const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-            ? "http://localhost:8000"
-            : "";
-
-        // Inicializar perfil de usuario
-        const nombreUsuario = localStorage.getItem('usuario_nombre');
-        if (nombreUsuario) {
-            document.getElementById('txt-usuario').innerText = nombreUsuario;
-        }
-
-        // ==========================================
-        // 2. CARGA DE TIPOS DE EQUIPO DESDE BASE DE DATOS
-        // ==========================================
-        async function cargarTiposEquipos() {
-            const selectTipo = document.getElementById('tipo_equipo_id');
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/tipos-equipos`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.status === 401) { cerrarSesion(); return; }
-                if (!response.ok) throw new Error("No se pudo obtener el listado de tipos de equipo.");
-
-                const tipos = await response.json();
-
-                selectTipo.innerHTML = ""; // Limpiar placeholder de carga
-                if (tipos.length === 0) {
-                    selectTipo.innerHTML = `<option value="" disabled selected>No hay categorías guardadas</option>`;
-                    return;
-                }
-
-                tipos.forEach(tipo => {
-                    const option = document.createElement('option');
-                    option.value = tipo.id;
-                    option.textContent = `${tipo.nombre} (Cat: ${tipo.categoria || 'General'})`;
-                    selectTipo.appendChild(option);
-                });
-
-            } catch (error) {
-                console.error("Error al cargar componentes metrológicos:", error);
-                selectTipo.innerHTML = `<option value="" disabled selected>⚠️ Error al conectar con el servidor</option>`;
-            }
-        }
-
-        // ==========================================
-        // 3. ENVÍO SEGURO DEL FORMULARIO (POST)
-        // ==========================================
-        async function enviarFormulario(event) {
-            event.preventDefault();
-
-            const btn = document.getElementById('btn-submit');
-            const errorContainer = document.getElementById('error-msg');
-            errorContainer.style.display = "none";
-
-            // Obtener el ID de empresa asignado dinámicamente en el login
-            const empresaId = localStorage.getItem('empresa_id');
-
-            // Mapeo y sanitización rigurosa del Payload
-            const payload = {
-                codigo: document.getElementById('codigo').value.trim(),
-                tipo_equipo_id: parseInt(document.getElementById('tipo_equipo_id').value),
-                marca: document.getElementById('marca').value.trim() || null,
-                modelo: document.getElementById('modelo').value.trim() || null,
-                serial: document.getElementById('serial').value.trim() || null,
-                ubicacion: document.getElementById('ubicacion').value.trim() || null,
-                nivel_uso: document.getElementById('nivel_uso').value,
-                fecha_inicio_operacion: document.getElementById('fecha_inicio_operacion').value || null,
-                observaciones_iniciales: document.getElementById('observaciones_iniciales').value.trim() || null,
-                empresa_id: empresaId ? parseInt(empresaId) : 1 // Respaldo seguro por defecto
-            };
-
-            // Prevención UX: Bloqueo de re-envíos por lag de red
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Sincronizando Activo...`;
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/equipos`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.status === 401) { cerrarSesion(); return; }
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    errorContainer.innerText = `❌ Error de Integridad: ${data.detail || 'No se pudo dar de alta el instrumento.'}`;
-                    errorContainer.style.display = "block";
-
-                    // Reactivación si hay fallos en la validación del backend
-                    btn.disabled = false;
-                    btn.innerHTML = `<i class="fas fa-save"></i> Registrar Activo`;
-                } else {
-                    alert("✅ Instrumento incorporado con éxito al Inventario Metrológico de la plataforma.");
-                    window.location.href = "dashboard.html";
-                }
-
-            } catch (error) {
-                console.error("Fallo crítico en solicitud POST:", error);
-                errorContainer.innerText = "📡 Error de enlace de red: El servidor central no responde. Intente nuevamente.";
-                errorContainer.style.display = "block";
-
-                btn.disabled = false;
-                btn.innerHTML = `<i class="fas fa-save"></i> Registrar Activo`;
-            }
-        }
-
-        // ==========================================
-        // 4. LOGOUT DE COMPORTAMIENTO SAAS
-        // ==========================================
-        function cerrarSesion() {
-            localStorage.clear();
-            window.location.href = "index.html";
-        }
-
-        // Orquestación al levantar la pantalla
-        window.onload = () => {
-            cargarTiposEquipos();
-        };
-    </script>
+    <script src="js/voice-crear-equipo.js"></script>
 </body>
 
 </html>

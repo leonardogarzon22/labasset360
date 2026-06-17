@@ -1,18 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>LabAsset 360 - Registro de Anomalías</title>
-
-    <script>
-        (function () {
-            if (!localStorage.getItem("access_token")) {
-                window.location.replace("index.html");
-            }
-        })();
-    </script>
-
     <style>
         :root {
             --primary: #243B8F;
@@ -42,7 +32,7 @@
             background: white;
             padding: 40px;
             border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             border-top: 6px solid var(--primary);
         }
 
@@ -54,123 +44,188 @@
         .panel-header h2 {
             color: var(--text-main);
             margin-bottom: 8px;
+            font-size: 22px;
         }
 
-        .form-group {
+        .panel-header p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .input-group {
             margin-bottom: 20px;
         }
 
-        label {
+        .input-group label {
             display: block;
-            font-size: 0.9rem;
+            margin-bottom: 8px;
             font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 5px;
+            color: var(--text-main);
+            font-size: 13px;
         }
 
-        input,
-        textarea,
-        select {
+        .input-group select, 
+        .input-group textarea {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 2px solid #eef2f7;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: 0.3s;
+            background: #fcfdfe;
+        }
+
+        .input-group select:focus, 
+        .input-group textarea:focus {
+            border-color: var(--primary);
+            outline: none;
         }
 
         .btn-submit {
+            width: 100%;
+            padding: 14px;
             background: var(--primary);
             color: white;
             border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 8px;
-            font-weight: bold;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
             transition: 0.3s;
+            margin-top: 10px;
         }
 
         .btn-submit:hover {
             background: #1C2C70;
+            transform: translateY(-2px);
+        }
+
+        .btn-back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
         }
     </style>
 </head>
-
 <body>
 
-    <div class="kiosko-container">
-        <div class="panel-elegante">
-            <div class="panel-header">
-                <h2>Reportar Anomalía</h2>
-                <p>Ecosistema LabAsset 360</p>
-            </div>
-            <form id="formFalla">
-                <div class="form-group">
-                    <label>ID Equipo</label>
-                    <input type="text" id="equipo_id" required>
-                </div>
-                <div class="form-group">
-                    <label>Descripción de la Falla</label>
-                    <textarea id="descripcion" rows="4" required></textarea>
-                </div>
-                <button type="submit" class="btn-submit" id="btn-submit">Enviar Reporte</button>
-            </form>
+<div class="kiosko-container">
+    <div class="panel-elegante">
+        <div class="panel-header">
+            <h2>Reportar Incidencia</h2>
+            <p>El equipo pasará a revisión técnica</p>
         </div>
+
+        <form id="fallaForm" onsubmit="enviarReporte(event)">
+            <div class="input-group">
+                <label>Categoría</label>
+                <select id="tipoFalla" required>
+                    <option value="mecanica">Mecánica</option>
+                    <option value="electrica">Eléctrica</option>
+                    <option value="software">Software</option>
+                    <option value="otro">Otra</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Impacto</label>
+                <select id="nivelUrgencia" required>
+                    <option value="baja">Baja</option>
+                    <option value="media" selected>Media</option>
+                    <option value="alta">Alta</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>Descripción detallada</label>
+                <textarea id="descripcionFalla" rows="4" placeholder="Detalle la falla observada..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnSubmit">Registrar Reporte</button>
+        </form>
+
+        <a href="javascript:history.back()" class="btn-back">← Volver atrás</a>
+    </div>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const equipoId = params.get("id");
+
+    async function enviarReporte(event) {
+        event.preventDefault();
+        const btn = document.getElementById('btnSubmit');
+        btn.disabled = true;
+        btn.innerText = "Registrando...";
+
+        const payload = {
+            equipo_id: equipoId,
+            tipo: document.getElementById('tipoFalla').value,
+            urgencia: document.getElementById('nivelUrgencia').value,
+            descripcion: document.getElementById('descripcionFalla').value,
+            fecha_reporte: new Date().toISOString()
+        };
+
+        try {
+            const res = await fetch(`https://labasset360.onrender.com/api/fallas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error("Error");
+
+            alert("✅ Reporte enviado correctamente.");
+            window.location.href = `kiosko.html?id=${equipoId}`;
+        } catch (error) {
+            alert("Error al registrar.");
+            btn.disabled = false;
+            btn.innerText = "Registrar Reporte";
+        }
+    }
+</script>
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado" style="width: 110px; height: 110px; object-fit: contain;">
+        
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado" style="width: 110px; height: 110px; object-fit: contain; display: none;">
     </div>
 
-    <script>
-        // CONFIGURACIÓN DE SEGURIDAD
-        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://127.0.0.1:8000'
-            : 'https://labasset360.onrender.com';
+    <style>
+        
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
 
-        const AuthEngine = {
-            getToken() { return localStorage.getItem("access_token"); },
-            getAuthHeaders() {
-                return {
-                    'Authorization': `Bearer ${this.getToken()}`,
-                    'Content-Type': 'application/json'
-                };
-            },
-            manejarError(res) {
-                if (res.status === 401 || res.status === 403) {
-                    localStorage.clear();
-                    window.location.replace("index.html");
-                }
+        
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
             }
-        };
-
-        document.getElementById('formFalla').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit');
-            btn.disabled = true;
-
-            const payload = {
-                equipo_id: document.getElementById('equipo_id').value,
-                descripcion: document.getElementById('descripcion').value
-            };
-
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/fallas`, {
-                    method: 'POST',
-                    headers: AuthEngine.getAuthHeaders(),
-                    body: JSON.stringify(payload)
-                });
-
-                AuthEngine.manejarError(res);
-
-                if (res.ok) {
-                    alert("Reporte enviado correctamente.");
-                    window.location.href = "dashboard.html";
-                } else {
-                    alert("Error al enviar el reporte.");
-                    btn.disabled = false;
-                }
-            } catch (err) {
-                console.error("Error crítico:", err);
-                btn.disabled = false;
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
             }
-        };
-    </script>
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+    <script src="js/voice-reportar-falla.js"></script>
 </body>
-
 </html>
