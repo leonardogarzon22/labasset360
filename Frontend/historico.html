@@ -136,7 +136,7 @@
             color: #c62828;
         }
 
-        /* Barra de Salud Visual */
+        
         .health-container {
             margin-top: 15px;
         }
@@ -161,7 +161,7 @@
             transition: width 0.5s ease;
         }
 
-        /* Buscador */
+        
         .search-box {
             padding: 10px 15px;
             border-radius: 8px;
@@ -219,12 +219,12 @@
             contenedor.innerHTML = "";
 
             equipos.forEach(eq => {
-                // Lógica de color de salud
-                let colorSalud = "#2e7d32"; // Verde
-                if (eq.indice_salud < 70) colorSalud = "#f9a825"; // Amarillo/Naranja
-                if (eq.indice_salud < 40) colorSalud = "#c62828"; // Rojo
+                
+                let colorSalud = "#2e7d32"; 
+                if (eq.indice_salud < 70) colorSalud = "#f9a825"; 
+                if (eq.indice_salud < 40) colorSalud = "#c62828"; 
 
-                // Lógica de badge de estado 
+                
                 const estado = eq.estado || "Operativo";
                 const claseEstado = estado.toLowerCase().replace(" ", "-");
 
@@ -256,7 +256,7 @@
         }
 
         function irADetalle(id) {
-            // Redirige a la pantalla de edición pasándole el ID
+            
             window.location.href = `detalle-equipo.html?id=${id}`;
         }
 
@@ -269,16 +269,16 @@
             renderizarTarjetas(filtrados);
         }
 
-        // Inicializar
+        
         cargarEquipos();
     </script>
     <div id="voice-indicator"
         style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
         onclick="VoiceEngine.toggle()">
-        <!-- Imagen por defecto (Desactivado) -->
+        
         <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
             style="width: 110px; height: 110px; object-fit: contain;">
-        <!-- Imagen cuando está activo (Oculta por defecto) -->
+        
         <img src="activado.png" class="icon-on" alt="Micrófono Activado"
             style="width: 110px; height: 110px; object-fit: contain; display: none;">
     </div>
@@ -290,7 +290,7 @@
             animation: pulseVoice 1.5s infinite;
         }
 
-        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
+        
         #voice-indicator.active .icon-off {
             display: none !important;
         }

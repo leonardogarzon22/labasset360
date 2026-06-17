@@ -290,7 +290,7 @@
 
     <div class="etiqueta-container" id="etiqueta">
 
-        <!-- HEADER -->
+        
         <div class="header">
 
             <div class="logo-box">
@@ -311,10 +311,10 @@
 
         </div>
 
-        <!-- BODY -->
+        
         <div class="body">
 
-            <!-- IZQUIERDA -->
+            
             <div>
 
                 <div class="info-grid">
@@ -351,7 +351,7 @@
 
                 </div>
 
-                <!-- SALUD -->
+                
                 <div class="salud-section">
 
                     <label style="font-size:13px;font-weight:bold;color:#666;">
@@ -368,7 +368,7 @@
 
             </div>
 
-            <!-- DERECHA -->
+            
             <div class="qr-panel">
 
                 <div id="qrcode"></div>
@@ -383,7 +383,7 @@
 
         </div>
 
-        <!-- FOOTER -->
+        
         <div class="footer">
 
             <span>
@@ -445,11 +445,11 @@ async function cargarEtiqueta() {
         document.getElementById("saludTexto").innerText =
             `${salud}%`;
 
-        // FECHA
+        
         document.getElementById("fecha").innerText =
             new Date().toLocaleDateString();
 
-        // QR
+        
         const qrURL =
             `${window.location.origin}/kiosko.html?id=${e.id}`;
 

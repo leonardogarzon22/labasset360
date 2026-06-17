@@ -213,7 +213,7 @@
             border: none;
             cursor: pointer;
             font-size: 1.3rem;
-            /* Tamaño del icono */
+            
             transition: transform 0.2s;
             padding: 0;
             line-height: 1;
@@ -376,7 +376,7 @@
 
                     </div>
 
-                    <!-- ===== MODO CHECKLIST ===== -->
+                    
                     <div id="seccion-checklist" style="display:none">
 
                         <h4>Resultados Guardados</h4>
@@ -440,7 +440,7 @@
                     const estadoActual = (e.estado || "OPERATIVO").toUpperCase();
                     badge.innerText = estadoActual;
 
-                    // 2. COLORES DINÁMICOS SEGÚN EL ESTADO REAL
+                    
                    
                     const estilos = {
                         'OPERATIVO': { bg: '#e8f5e9', color: '#2e7d32' },
@@ -729,17 +729,17 @@ oninput="evaluarManual(${p.id})"
 
                     const estadoSeleccionado = document.getElementById('estado').value;
 
-                    // SI ES PRÉSTAMO: Redirigir antes de guardar
+                    
                     if (estadoSeleccionado === "En prestamo") {
-                        // Guardar  la ubicación y responsable actual en sesión por si acaso
+                        
                         sessionStorage.setItem('pending_ubicacion', document.getElementById('ubicacion').value);
 
-                        // Redirigir a la página de préstamos
+                        
                         window.location.href = `gestion-prestamo.html?id=${equipoId}`;
                         return;
                     }
 
-                    // SI ES OTRO ESTADO: Guardar normalmente
+                    
                     const fd = new FormData();
                     fd.append('ubicacion', document.getElementById('ubicacion').value);
                     fd.append('responsable', document.getElementById('responsable').value);
@@ -777,12 +777,12 @@ oninput="evaluarManual(${p.id})"
                     return d.toISOString().split('T')[0];
                 }
 
-                // 1. Función para mostrar el modal de calibración
+                
                 function abrirModalCalibracion() {
                     document.getElementById('modalCalibracion').style.display = "flex";
                 }
 
-                // 2. Función para cerrar el modal
+                
                 function cerrarModalCalibracion() {
                     document.getElementById('modalCalibracion').style.display = "none";
                 }
@@ -816,12 +816,12 @@ oninput="evaluarManual(${p.id})"
                     }
                 }
 
-                // Función para cerrar el modal 
+                
                 function cerrarModalReprogramar() {
                     document.getElementById('modalReprogramar').style.display = 'none';
                 }
 
-                // 3. Función para enviar los datos al servidor
+                
                 async function guardarCalibracion() {
                     const data = {
                         fecha_programada: document.getElementById('c_fecha').value,
@@ -1035,10 +1035,10 @@ oninput="evaluarManual(${p.id})"
 
                     const id = new URLSearchParams(window.location.search).get("id");
 
-                    // Si selecciona devolución
+                    
                     if (valor === "Devolucion") {
 
-                        // Redirige a gestion-prestamo en modo regreso
+                        
                         window.location.href = `gestion-prestamo.html?id=${id}&modo=regreso`;
 
                         return;
@@ -1180,7 +1180,7 @@ oninput="evaluarManual(${p.id})"
 
                     cargarDetalle();
 
-                    /* ===== MANTENIMIENTO ===== */
+                    
                     const m_fecha = document.getElementById('m_fecha');
                     const m_periodicidad = document.getElementById('m_periodicidad');
 
@@ -1203,13 +1203,13 @@ oninput="evaluarManual(${p.id})"
 
                 });
 
-                // Abre el modal y guarda el ID de la calibración que vamos a afectar
+                
                 function abrirModalEjecutarCal(id) {
                     document.getElementById('exec_cal_id').value = id;
                     document.getElementById('modalEjecutarCal').style.display = 'flex';
                 }
 
-                // Envía el PDF y el resultado al Backend
+                
                 async function enviarEjecucionCal() {
                     const id = document.getElementById('exec_cal_id').value;
                     const resultado = document.getElementById('exec_cal_resultado').value;
@@ -1225,7 +1225,7 @@ oninput="evaluarManual(${p.id})"
                     formData.append('resultado', resultado);
 
                     try {
-                        // Ajusta esta URL según tu backend, normalmente es un endpoint de 'completar'
+                        
                         const res = await fetch(`${API_URL}/api/calibraciones/${id}/completar`, {
                             method: 'POST',
                             body: formData
@@ -1288,18 +1288,18 @@ oninput="evaluarManual(${p.id})"
                     }
                 }
 
-                // 1. Función para obtener datos de la API
+                
                 async function cargarUltimaUbicacion() {
                     try {
                         const res = await fetch(`${API_URL}/api/equipos/${equipoId}/historial-ubicaciones`);
                         const historial = await res.json();
 
                         if (historial && historial.length > 0) {
-                            const ultima = historial[0]; // La API suele devolver la más reciente primero
+                            const ultima = historial[0]; 
                             document.getElementById("ub-nombre").innerText = ultima.nombre_personalizado;
                             document.getElementById("ub-dir").innerText = ultima.direccion_texto;
 
-                            // Botón para Google Maps
+                            
                             document.getElementById("btn-llegar-container").innerHTML = `
                 <a href="https://www.google.com/maps/search/?api=1&query=${ultima.latitud},${ultima.longitud}"
                    target="_blank" class="btn-save" style="text-decoration:none; display:inline-block; font-size:0.8rem; padding:8px 12px; background:#27ae60;">
@@ -1315,7 +1315,7 @@ oninput="evaluarManual(${p.id})"
                     }
                 }
 
-                // 2. Navegación
+                
                 function irARegistrarUbicacion() {
                     window.location.href = `mapa-ubicacion.html?id=${equipoId}`;
                 }
@@ -1471,10 +1471,10 @@ oninput="evaluarManual(${p.id})"
             <div id="voice-indicator"
                 style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
                 onclick="VoiceEngine.toggle()">
-                <!-- Imagen por defecto (Desactivado) -->
+                
                 <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
                     style="width: 110px; height: 110px; object-fit: contain;">
-                <!-- Imagen cuando está activo (Oculta por defecto) -->
+                
                 <img src="activado.png" class="icon-on" alt="Micrófono Activado"
                     style="width: 110px; height: 110px; object-fit: contain; display: none;">
             </div>
@@ -1486,7 +1486,7 @@ oninput="evaluarManual(${p.id})"
                     animation: pulseVoice 1.5s infinite;
                 }
 
-                /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
+                
                 #voice-indicator.active .icon-off {
                     display: none !important;
                 }

@@ -578,7 +578,7 @@
             document.getElementById('rep-inicio').innerText = e.fecha_inicio_operacion || "N/A";
             document.getElementById('rep-observaciones').innerText = e.observaciones_iniciales || "Sin observaciones.";
 
-            /// Cargar última evaluación para el reporte
+            
             const resEval = await fetch(`${API_URL}/api/equipos/${id}/evaluaciones`);
             if (resEval.ok) {
                 const evaluaciones = await resEval.json();
@@ -628,7 +628,7 @@
                 });
             }
 
-            // --- CARGAR HISTORIAL DE MANTENIMIENTO ---
+            
             const resM = await fetch(`${API_URL}/api/equipos/${id}/mantenimientos`); // Endpoint en main.py
             if (resM.ok) {
                 const mantenimientos = await resM.json();
@@ -668,7 +668,7 @@
                 }
             }
 
-            // --- CARGAR HISTORIAL DE CALIBRACIONES ---
+            
             const resC = await fetch(`${API_URL}/api/equipos/${id}/calibraciones`);
 
             if (resC.ok) {
@@ -754,9 +754,9 @@
             }
         }
 
-        // FUNCIÓN CONTROLADORA SECUENCIAL
+        
         async function inicializarReporte() {
-            await cargarEquipos(); // 1. Espera a que cargue la lista
+            await cargarEquipos(); 
 
             const urlParams = new URLSearchParams(window.location.search);
             const codigoBuscado = urlParams.get("codigo");
@@ -765,7 +765,7 @@
                 const select = document.getElementById('equipo-select');
                 let encontrado = false;
 
-                // 2. Busca el equipo en el select
+                
                 for (let i = 0; i < select.options.length; i++) {
                     if (select.options[i].text.includes(codigoBuscado)) {
                         select.selectedIndex = i;
@@ -775,9 +775,8 @@
                 }
 
                 if (encontrado) {
-                    await generarVistaPrevia(); // 3. Genera el reporte
-
-                    // 4. Desvanece la pantalla de carga
+                    await generarVistaPrevia();
+                    
                     const overlay = document.getElementById('overlay-kiosko');
                     if (overlay) {
                         overlay.style.opacity = "0";

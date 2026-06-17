@@ -161,7 +161,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const equipoId = urlParams.get('id');
 
-        // Búsqueda Inteligente: Si no halla el número, busca la calle
+        
         async function buscarDireccionInteligente() {
             let direccionOriginal = document.getElementById("busqueda").value;
             let status = document.getElementById("status-busqueda");
@@ -169,7 +169,7 @@
 
             if (!direccionOriginal) return alert("Por favor, escribe una dirección.");
 
-            // Función interna para intentar buscar y posicionar
+            
             async function intentarBusqueda(texto) {
                 
                 let query = texto;
@@ -178,10 +178,10 @@
                 return await fetchNominatim(query);
             }
 
-            // 1. Primer intento: Dirección exacta tal cual la escribió el usuario
+            
             let data = await intentarBusqueda(direccionOriginal);
 
-            // 2. Segundo intento (Robustez): Si falla y tiene el símbolo #
+            
             if (data.length === 0 && direccionOriginal.includes("#")) {
                 status.innerText = "Buscando aproximación de la vía principal...";
                 status.style.display = "block";
@@ -191,7 +191,7 @@
                 data = await intentarBusqueda(simplificada);
             }
 
-            // 3. Tercer intento: Limpiar caracteres especiales que confunden a Nominatim
+            
             if (data.length === 0) {
                 let limpia = direccionOriginal.replace(/[#\-]/g, ' '); // Cambia # y - por espacios
                 data = await intentarBusqueda(limia);
@@ -201,13 +201,13 @@
                 let lat = parseFloat(data[0].lat);
                 let lon = parseFloat(data[0].lon);
 
-                // --- NUEVA LÓGICA DE ROBUSTEZ ---
+                
                 coordenadaActual = { lat, lon };
-                map.setView([lat, lon], 18); // Zoom más profundo para precisión
+                map.setView([lat, lon], 18); 
 
                 if (marcador) map.removeLayer(marcador);
 
-                // Crear marcador ARRASTRABLE para que el usuario corrija el error del mapa
+                
                 marcador = L.marker([lat, lon], {
                     draggable: true,
                     autoPan: true
@@ -221,7 +221,7 @@
             </div>
         `).openPopup();
 
-                // Evento para actualizar la coordenada cuando el usuario mueva el pin manualmente
+                
                 marcador.on('dragend', function (event) {
                     let posicion = marcador.getLatLng();
                     coordenadaActual = { lat: posicion.lat, lon: posicion.lng };
@@ -341,7 +341,7 @@
             status.innerText = "Obteniendo coordenadas de alta precisión...";
             status.style.display = "block";
 
-            // Configuramos ALTA PRECISIÓN
+            
             const options = {
                 enableHighAccuracy: true,
                 timeout: 5000,
@@ -369,14 +369,14 @@
             }, options);
         }
 
-        // Función unificada para poner el marcador y permitir corregirlo manualmente
+        
         function actualizarPuntoEnMapa(lat, lon, titulo) {
             coordenadaActual = { lat, lon };
             map.setView([lat, lon], 18); 
 
             if (marcador) map.removeLayer(marcador);
 
-            // Creamos el marcador ARRASTRABLE
+            
             marcador = L.marker([lat, lon], { draggable: true }).addTo(map)
                 .bindPopup(`<b>${titulo}</b><br>¡Puedes arrastrarme hasta la puerta exacta!`)
                 .openPopup();
