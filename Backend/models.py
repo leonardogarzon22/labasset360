@@ -27,7 +27,18 @@ class TipoEquipo(Base):
 # =====================================
 # EQUIPOS
 # =====================================
+class Empresa(Base):
+    __tablename__ = "empresas"
 
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String, unique=True, index=True, nullable=False)
+    fecha_registro = Column(DateTime, default=datetime.utcnow)
+
+    # Relaciones
+    usuarios = relationship("Usuario", back_populates="empresa")
+    equipos = relationship("Equipo", back_populates="empresa")
+    
+    
 class Equipo(Base):
     __tablename__ = "equipos"
 
@@ -76,6 +87,9 @@ class Equipo(Base):
         back_populates="equipo",
         cascade="all, delete-orphan"
     )
+    
+    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False) # <--- NUEVO
+    empresa = relationship("Empresa", back_populates="equipos")
 
 
 # =====================================
@@ -261,6 +275,8 @@ class Usuario(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     fecha_registro = Column(DateTime, default=datetime.utcnow)
+    empresa_id = Column(Integer, ForeignKey("empresas.id"), nullable=False) # <--- NUEVO
+    empresa = relationship("Empresa", back_populates="usuarios")
 
 # Índice único condicional para áreas críticas
 # Esto evita que se inserte más de un registro si el área es una de las 3 restringidas

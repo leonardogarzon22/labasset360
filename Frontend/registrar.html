@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +14,12 @@
             --text-light: #f8fafc;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
 
         body {
             background: var(--primary-blue);
@@ -26,8 +32,10 @@
 
         #nano-canvas {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: 0;
             pointer-events: none;
         }
@@ -73,14 +81,24 @@
             width: 100%;
             max-width: 500px;
             border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
         }
 
-        .register-card h2 { font-size: 1.5rem; margin-bottom: 25px; font-weight: 700; text-align: center; }
+        .register-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+            text-align: center;
+        }
 
-        .input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 14px;
             background: #0f172a;
@@ -93,12 +111,33 @@
             transition: 0.3s;
         }
 
-        select option { background: #111827; color: white; }
-        input:focus, select:focus { border-color: var(--accent-cyan); background: #1e293b; }
+        select option {
+            background: #111827;
+            color: white;
+        }
 
-        #extra-area { display: none; animation: fadeIn 0.3s forwards; }
+        input:focus,
+        select:focus {
+            border-color: var(--accent-cyan);
+            background: #1e293b;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        #extra-area {
+            display: none;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         .btn-register {
             width: 100%;
@@ -114,25 +153,47 @@
             transition: all 0.3s;
         }
 
-        .btn-register:hover { filter: brightness(1.2); transform: translateY(-2px); }
-        .btn-register:disabled { background: #475569; cursor: not-allowed; }
+        .btn-register:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+        }
 
-        #error-msg { 
-            color: var(--accent-red); 
-            font-size: 0.85rem; 
+        /* Estilo deshabilitado para producción */
+        .btn-register:disabled {
+            background: #334155;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #error-msg {
+            color: var(--accent-red);
+            font-size: 0.85rem;
             text-align: center;
-            margin-top: 15px; 
-            display: none; 
+            margin-top: 15px;
+            display: none;
             padding: 10px;
             border: 1px dashed var(--accent-red);
             border-radius: 8px;
             background: rgba(255, 62, 62, 0.1);
+            line-height: 1.4;
         }
 
-        .back-link { text-align: center; margin-top: 20px; font-size: 0.85rem; color: #64748b; }
-        .back-link a { color: var(--accent-cyan); text-decoration: none; font-weight: 600; }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .back-link a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
+
 <body>
 
     <canvas id="nano-canvas"></canvas>
@@ -146,14 +207,14 @@
         <div class="auth-section">
             <div class="register-card">
                 <h2>Nuevo Ecosistema</h2>
-                
+
                 <div class="input-row">
                     <input type="text" id="nombre" placeholder="Nombre" required>
                     <input type="text" id="apellido" placeholder="Apellido" required>
                 </div>
-                
+
                 <input type="text" id="laboratorio" placeholder="Nombre del Laboratorio" required>
-                
+
                 <select id="area-select" onchange="toggleAreaInput()">
                     <option value="" disabled selected>Seleccione Área</option>
                     <option value="Calidad">Calidad</option>
@@ -166,26 +227,31 @@
 
                 <input type="email" id="email" placeholder="Email Corporativo" required>
                 <input type="password" id="pass" placeholder="Contraseña Maestra" required>
-                
+
                 <button class="btn-register" id="btnSubmit" onclick="ejecutarRegistro()">Inicializar Nodo</button>
-                
+
                 <div id="error-msg"></div>
 
                 <div class="back-link">
-                    ¿Ya tienes una cuenta? <a href="login.html">Iniciar Sesión</a>
+                    ¿Ya tienes una cuenta? <a href="index.html">Iniciar Sesión</a>
                 </div>
             </div>
         </div>
     </div>
 
-    
-
     <script>
+        // ==========================================
+        // CONFIGURACIÓN DE RUTAS PARA DESPLIEGUE (PROD)
+        // ==========================================
+        const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+            ? "http://localhost:8000"
+            : "";
+
         // --- LÓGICA DE INTERFAZ ---
         function toggleAreaInput() {
             const select = document.getElementById('area-select');
             const extra = document.getElementById('extra-area');
-            if(select.value === 'otro') {
+            if (select.value === 'otro') {
                 extra.style.display = 'block';
                 extra.setAttribute('required', 'true');
             } else {
@@ -208,31 +274,34 @@
         async function ejecutarRegistro() {
             const btn = document.getElementById('btnSubmit');
             const areaPrincipal = document.getElementById('area-select').value;
-            const areaFinal = areaPrincipal === 'otro' ? document.getElementById('extra-area').value : areaPrincipal;
-            
+            const areaFinal = areaPrincipal === 'otro' ? document.getElementById('extra-area').value.trim() : areaPrincipal;
+
+            // Construcción del Payload con sanitización básica (.trim())
             const payload = {
-                nombre: document.getElementById('nombre').value,
-                apellido: document.getElementById('apellido').value,
-                laboratorio: document.getElementById('laboratorio').value,
+                nombre: document.getElementById('nombre').value.trim(),
+                apellido: document.getElementById('apellido').value.trim(),
+                laboratorio: document.getElementById('laboratorio').value.trim(),
                 area: areaFinal,
-                email: document.getElementById('email').value,
+                email: document.getElementById('email').value.trim(),
                 password: document.getElementById('pass').value
             };
 
-            // Validación básica front-end
-            if (!payload.nombre || !payload.area || !payload.email || !payload.password) {
+            // Validación preventiva local
+            if (!payload.nombre || !payload.apellido || !payload.laboratorio || !payload.area || !payload.email || !payload.password) {
                 mostrarError("⚠️ Todos los campos son obligatorios para la integridad del nodo.");
                 activarAlertaVisual();
                 return;
             }
 
             ocultarError();
+
+            // Control UX para producción: evitar envíos repetidos
             btn.disabled = true;
             btn.innerText = "Sincronizando...";
 
             try {
-                
-                const response = await fetch('https://labasset360.onrender.com/api/registro', {
+                // Consumo dinámico usando la URL base unificada
+                const response = await fetch(`${API_BASE_URL}/api/registro`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -241,19 +310,23 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    // El servidor respondió con un error
-                    mostrarError(`❌ Error de Validación: ${data.detail || 'Verifique los datos'}`);
+                    // Extrae el mensaje exacto enviado desde el HTTPExceptions de FastAPI
+                    mostrarError(`❌ Error de Validación: ${data.detail || 'Verifique los datos ingresados.'}`);
                     activarAlertaVisual();
+
+                    // Reactivación de controles si falla
                     btn.disabled = false;
                     btn.innerText = "Inicializar Nodo";
                 } else {
-                    // Éxito
-                    alert("✅ Registro exitoso. Nodo guardado en PostgreSQL.");
+                    // Éxito: Notificación limpia y redirección al inicio de sesión
+                    alert("✅ Registro exitoso. Nodo guardado en el ecosistema PostgreSQL.");
                     window.location.href = "index.html";
                 }
             } catch (error) {
-                mostrarError("📡 Error de conexión: No se pudo alcanzar el servidor central.");
+                console.error("Error crítico de comunicación de red:", error);
+                mostrarError("📡 Error de conexión: No se pudo alcanzar el servidor central. Intente más tarde.");
                 activarAlertaVisual();
+
                 btn.disabled = false;
                 btn.innerText = "Inicializar Nodo";
             }
@@ -287,7 +360,7 @@
             }
             draw() {
                 ctx.fillStyle = isAlertMode ? '#ff3e3e' : 'rgba(0, 242, 255, 0.4)';
-                if(isAlertMode) { ctx.shadowBlur = 10; ctx.shadowColor = '#ff3e3e'; }
+                if (isAlertMode) { ctx.shadowBlur = 10; ctx.shadowColor = '#ff3e3e'; }
                 else { ctx.shadowBlur = 0; }
                 ctx.fillRect(this.x, this.y, this.size, this.size);
             }
@@ -296,7 +369,7 @@
         function init() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            particles = Array.from({length: 70}, () => new Nanobot());
+            particles = Array.from({ length: 70 }, () => new Nanobot());
         }
 
         function animate() {
@@ -309,4 +382,5 @@
         window.addEventListener('resize', init);
     </script>
 </body>
+
 </html>

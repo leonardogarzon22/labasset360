@@ -5,17 +5,28 @@
     <meta charset="UTF-8">
     <title>LabAsset 360 - Histórico de Equipos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script>
+        (function () {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                // Redirección fulminante antes de que el navegador procese el DOM o los estilos
+                window.location.replace("index.html"); 
+            }
+        })();
+    </script>
+
     <style>
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
             background: #f4f6fb;
+            color: #333;
         }
 
         .layout {
@@ -23,17 +34,24 @@
             min-height: 100vh;
         }
 
-        
+        /* BARRA LATERAL INSTITUCIONAL */
         .sidebar {
             width: 250px;
             background: linear-gradient(180deg, #243B8F, #1C2C70);
             color: white;
             padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .sidebar h2 {
+        .sidebar-brand h2 {
             margin-bottom: 40px;
             font-weight: 600;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
         }
 
         .sidebar ul {
@@ -45,128 +63,142 @@
             border-radius: 8px;
             margin-bottom: 10px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .sidebar li:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .sidebar li:hover, .sidebar li.active {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
         }
 
-        .sidebar .active {
-            background: rgba(255, 255, 255, 0.2);
+        .logout-btn {
+            background: #e74c3c !important;
+            margin-top: auto;
         }
 
-        .sidebar a {
-            text-decoration: none;
-            color: white;
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        .main {
+        /* PANEL PRINCIPAL DE CONTENIDO */
+        .main-content {
             flex: 1;
-            padding: 30px;
+            padding: 40px;
+            overflow-y: auto;
         }
 
         .header-section {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
-        /* Grid de Tarjetas */
-        .grid-equipos {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+        .header-section h1 {
+            font-size: 1.8rem;
+            color: #1C2C70;
         }
 
-        /* Tarjeta Estilo KPI */
-        .card-equipo {
+        /* CONTENEDOR DE FILTROS Y BÚSQUEDA */
+        .search-container {
             background: white;
             padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border-left: 5px solid #3A5BDB;
-        }
-
-        .card-equipo:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-equipo h3 {
-            color: #1C2C70;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-
-        .card-info {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 15px;
-            line-height: 1.6;
-        }
-
-        /* Badge de Estado */
-        .badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .estado-operativo {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .estado-revision {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-
-        .estado-no-operativo {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        /* Barra de Salud Visual */
-        .health-container {
-            margin-top: 15px;
-        }
-
-        .health-label {
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            margin-bottom: 30px;
             display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 5px;
-            font-weight: 600;
+            gap: 15px;
+            align-items: center;
         }
 
-        .health-bar-bg {
-            background: #eee;
-            height: 8px;
-            border-radius: 4px;
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            outline: none;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #243B8F;
+        }
+
+        /* TABLAS DE DATOS ESTILO PRODUCCIÓN */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             overflow: hidden;
         }
 
-        .health-bar-fill {
-            height: 100%;
-            transition: width 0.5s ease;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
         }
 
-        /* Buscador */
-        .search-box {
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 1px solid #dfe3f0;
-            width: 300px;
+        th {
+            background: #f8fafc;
+            color: #64748b;
+            padding: 16px 24px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+        .badge-warning { background: #fef3c7; color: #b45309; }
+        .badge-danger { background: #fee2e2; color: #b91c1c; }
+
+        /* INDICADOR FLOTANTE DE VOZ (VOICE ENGINE) */
+        #voice-indicator {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #243B8F;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 10000;
+            transition: all 0.3s ease;
+        }
+
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        @keyframes pulseVoice {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
         }
     </style>
 </head>
@@ -175,147 +207,189 @@
 
     <div class="layout">
         <aside class="sidebar">
-            <h2>LabAsset 360</h2>
+            <div class="sidebar-brand">
+                <h2>LabAsset 360</h2>
+                <ul>
+                    <li onclick="window.location.href='dashboard.html'">📊 Dashboard</li>
+                    <li onclick="window.location.href='crear-equipo.html'">➕ Nuevo Equipo</li>
+                    <li class="active" onclick="window.location.href='historico.html'">⏳ Historial General</li>
+                    <li onclick="window.location.href='reporte.html'">📋 Reportes de Auditoría</li>
+                    <li onclick="window.location.href='mapa-ubicacion.html'">📍 Ubicaciones</li>
+                </ul>
+            </div>
             <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
-                <li><a href="crear-equipo.html">Crear Equipo</a></li>
-                <li class="active"><a href="historico.html">Histórico</a></li>
-                <li><a href="reporte.html">Reportes</a></li>
-                <li><a href="#">Configuración</a></li>
+                <li class="logout-btn" onclick="AuthEngine.logout()">🚪 Cerrar Sesión</li>
             </ul>
         </aside>
 
-        <main class="main">
+        <main class="main-content">
             <div class="header-section">
-                <h1>Histórico de Equipos</h1>
-                <input type="text" id="buscador" class="search-box" placeholder="Buscar por código o marca..."
-                    onkeyup="filtrarEquipos()">
+                <h1>Historial Cronológico de Activos</h1>
+                <div id="usuario-display" style="font-weight: 600; color: #64748b;">Cargando usuario...</div>
             </div>
 
-            <div id="contenedor-equipos" class="grid-equipos">
-                <p>Cargando equipos...</p>
+            <div class="search-container">
+                <input type="text" id="busqueda" class="search-input" onkeyup="HistorialEngine.filtrar()" 
+                       placeholder="Buscar por código de activo, tipo, responsable o descripción...">
+            </div>
+
+            <div class="table-container">
+                <table id="tabla-historico">
+                    <thead>
+                        <tr>
+                            <th>Fecha de Registro</th>
+                            <th>ID / Código de Activo</th>
+                            <th>Evento / Movimiento</th>
+                            <th>Detalles de la Operación</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="datos-historico">
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px;">
+                                Conectando de forma segura con el servidor central de LabAsset...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </main>
     </div>
 
-    <script>
-        const API_URL = "https://labasset360.onrender.com";
-        let todosLosEquipos = [];
-
-        async function cargarEquipos() {
-            try {
-                
-                const res = await fetch(`${API_URL}/api/equipos`);
-                todosLosEquipos = await res.json();
-                renderizarTarjetas(todosLosEquipos);
-            } catch (error) {
-                console.error("Error:", error);
-                document.getElementById("contenedor-equipos").innerHTML = "<p class='error'>No se pudo conectar con el servidor.</p>";
-            }
-        }
-
-        function renderizarTarjetas(equipos) {
-            const contenedor = document.getElementById("contenedor-equipos");
-            contenedor.innerHTML = "";
-
-            equipos.forEach(eq => {
-                // Lógica de color de salud
-                let colorSalud = "#2e7d32"; // Verde
-                if (eq.indice_salud < 70) colorSalud = "#f9a825"; // Amarillo/Naranja
-                if (eq.indice_salud < 40) colorSalud = "#c62828"; // Rojo
-
-                // Lógica de badge de estado 
-                const estado = eq.estado || "Operativo";
-                const claseEstado = estado.toLowerCase().replace(" ", "-");
-
-                contenedor.innerHTML += `
-                <div class="card-equipo" onclick="irADetalle('${eq.id}')">
-                    <div style="display:flex; justify-content:space-between; align-items:start;">
-                        <h3>${eq.codigo}</h3>
-                        <span class="badge estado-${claseEstado}">${estado}</span>
-                    </div>
-                    
-                    <div class="card-info">
-                        <strong>Marca:</strong> ${eq.marca || 'N/A'}<br>
-                        <strong>Modelo:</strong> ${eq.modelo || 'N/A'}<br>
-                        <strong>Ubicación:</strong> ${eq.ubicacion || 'Sin asignar'}
-                    </div>
-
-                    <div class="health-container">
-                        <div class="health-label">
-                            <span>Salud del Equipo</span>
-                            <span>${eq.indice_salud}%</span>
-                        </div>
-                        <div class="health-bar-bg">
-                            <div class="health-bar-fill" style="width: ${eq.indice_salud}%; background: ${colorSalud};"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            });
-        }
-
-        function irADetalle(id) {
-            // Redirige a la pantalla de edición pasándole el ID
-            window.location.href = `detalle-equipo.html?id=${id}`;
-        }
-
-        function filtrarEquipos() {
-            const busqueda = document.getElementById("buscador").value.toLowerCase();
-            const filtrados = todosLosEquipos.filter(eq =>
-                eq.codigo.toLowerCase().includes(busqueda) ||
-                (eq.marca && eq.marca.toLowerCase().includes(busqueda))
-            );
-            renderizarTarjetas(filtrados);
-        }
-
-        // Inicializar
-        cargarEquipos();
-    </script>
-    <div id="voice-indicator"
-        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
-        onclick="VoiceEngine.toggle()">
-        <!-- Imagen por defecto (Desactivado) -->
-        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
-            style="width: 110px; height: 110px; object-fit: contain;">
-        <!-- Imagen cuando está activo (Oculta por defecto) -->
-        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
-            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    <div id="voice-indicator" onclick="VoiceEngine.toggle()">
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado" style="width: 32px; height: 32px; object-fit: contain;">
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado" style="width: 32px; height: 32px; object-fit: contain; display: none;">
     </div>
 
-    <style>
-        
-        #voice-indicator.active {
-            background: #e74c3c !important;
-            animation: pulseVoice 1.5s infinite;
-        }
+    <script>
+        // Configuración de Endpoints Centralizados (Detección automática de Entorno)
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000'
+            : 'https://ancestrales-1.onrender.com'; // Servidor de producción en Render
 
-        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
-        #voice-indicator.active .icon-off {
-            display: none !important;
-        }
-
-        #voice-indicator.active .icon-on {
-            display: block !important;
-        }
-
-        @keyframes pulseVoice {
-            0% {
-                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+        /**
+         * Motor de Gestión de Autenticación y Control de Sesión
+         */
+        const AuthEngine = {
+            getToken() {
+                return localStorage.getItem("access_token");
+            },
+            logout() {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("usuario_nombre");
+                window.location.replace("index.html");
+            },
+            verificarExpiracion(statusCode) {
+                if (statusCode === 401 || statusCode === 403) {
+                    console.warn("Sesión expirada o token inválido. Forzando salida segura.");
+                    this.logout();
+                }
             }
+        };
 
-            70% {
-                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+        /**
+         * Motor de Carga Dinámica e Intercepción de Datos del Historial
+         */
+        const HistorialEngine = {
+            registrosLocales: [],
+
+            async cargarHistorial() {
+                const tbody = document.getElementById("datos-historico");
+                const token = AuthEngine.getToken();
+
+                // Mostrar nombre del auditor/usuario activo
+                const nombreUsuario = localStorage.getItem("usuario_nombre") || "Auditor Autorizado";
+                document.getElementById("usuario-display").innerText = `👤 ${nombreUsuario}`;
+
+                try {
+                    // Petición blindada incorporando cabeceras de autorización Bearer JWT
+                    const response = await fetch(`${API_BASE_URL}/api/equipos/historico`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        AuthEngine.verificarExpiracion(response.status);
+                        throw new Error("Error en la respuesta del servidor central");
+                    }
+
+                    this.registrosLocales = await response.json();
+                    this.renderizar(this.registrosLocales);
+
+                } catch (error) {
+                    console.error("Fallo de comunicación con la API de LabAsset:", error);
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #e74c3c; font-weight: 500; padding: 40px;">
+                                ⚠️ No se pudo recuperar el historial. Sesión inválida o error en el servidor central.
+                            </td>
+                        </tr>`;
+                }
+            },
+
+            renderizar(lista) {
+                const tbody = document.getElementById("datos-historico");
+                if (lista.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b;">No se encontraron registros en el historial.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = lista.map(item => `
+                    <tr>
+                        <td>style="font-weight: 600;"${new Date(item.fecha_registro).toLocaleString('es-CO')}</td>
+                        <td><span style="font-family: monospace; font-weight: bold; color: #243B8F;">${item.equipo_codigo || 'N/A'}</span></td>
+                        <td><strong>${item.nombre_personalizado || 'Movimiento de Activo'}</strong></td>
+                        <td>${item.direccion_texto || 'Ubicación registrada en coordenadas sin observación adicional.'}</td>
+                        <td><span class="badge ${item.latitud ? 'badge-info' : 'badge-warning'}">Completado</span></td>
+                    </tr>
+                `).join('');
+            },
+
+            filtrar() {
+                const query = document.getElementById("busqueda").value.toLowerCase();
+                const filtrados = this.registrosLocales.filter(item => 
+                    (item.equipo_codigo && item.equipo_codigo.toLowerCase().includes(query)) ||
+                    (item.nombre_personalizado && item.nombre_personalizado.toLowerCase().includes(query)) ||
+                    (item.direccion_texto && item.direccion_texto.toLowerCase().includes(query))
+                );
+                this.renderizar(filtrados);
             }
+        };
 
-            100% {
-                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+        /**
+         * Subsistema de Control para el Motor de Voz Interactivo (VoiceEngine)
+         */
+        const VoiceEngine = {
+            isActive: false,
+            toggle() {
+                this.isActive = !this.isActive;
+                const indicator = document.getElementById("voice-indicator");
+                const iconOff = indicator.querySelector(".icon-off");
+                const iconOn = indicator.querySelector(".icon-on");
+
+                if (this.isActive) {
+                    indicator.classList.add("active");
+                    iconOff.style.display = "none";
+                    iconOn.style.display = "block";
+                    console.log("Subsistema de Voz: Escuchando comandos de auditoría...");
+                    // Implementación nativa de SpeechRecognition aquí si es requerido
+                } else {
+                    indicator.classList.remove("active");
+                    iconOff.style.display = "block";
+                    iconOn.style.display = "none";
+                    console.log("Subsistema de Voz: Desactivado.");
+                }
             }
-        }
-    </style>
+        };
 
-    <script src="js/voice-engine.js"></script>
-    <script src="js/voice-historico.js"></script>
+        // Inicialización automatizada al cargar el DOM
+        document.addEventListener("DOMContentLoaded", () => {
+            HistorialEngine.cargarHistorial();
+        });
+    </script>
 </body>
 
 </html>

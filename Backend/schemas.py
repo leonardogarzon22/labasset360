@@ -12,6 +12,13 @@ from typing import Union
 # EQUIPOS
 # =====================================
 
+class EmpresaResponse(BaseModel):
+    id: int
+    nombre: str
+
+    class Config:
+        from_attributes = True
+
 class EquipoBase(BaseModel):
     codigo: str
     tipo_equipo_id: int
@@ -25,6 +32,7 @@ class EquipoBase(BaseModel):
 
 
 class EquipoCreate(EquipoBase):
+    empresa_id: int
     pass
 
 
@@ -180,6 +188,7 @@ class UbicacionCreate(BaseModel):
     direccion_texto: str
     latitud: float
     longitud: float
+    nombre_empresa: str
 
 class UbicacionResponse(UbicacionCreate):
     id: int

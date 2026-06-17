@@ -5,7 +5,15 @@
     <meta charset="UTF-8">
     <title>LabAsset 360 - Detalle de Equipo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+
+    <script>
+        (function () {
+            if (!localStorage.getItem("access_token")) {
+                window.location.replace("index.html");
+            }
+        })();
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
@@ -26,33 +34,55 @@
             min-height: 100vh;
         }
 
+        /* Sidebar Institucional */
         .sidebar {
             width: 250px;
             background: linear-gradient(180deg, #243B8F, #1C2C70);
             color: white;
             padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        .sidebar h2 {
+        .sidebar-brand h2 {
             margin-bottom: 40px;
+            font-weight: 600;
+            font-size: 1.5rem;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
         }
 
-        .sidebar a {
-            text-decoration: none;
-            color: white;
-            display: block;
-            padding: 12px;
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            padding: 12px 15px;
             border-radius: 8px;
             margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .sidebar a:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .sidebar li:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateX(5px);
+        }
+
+        .logout-btn {
+            background: #e74c3c !important;
+            margin-top: auto;
         }
 
         .main {
             flex: 1;
             padding: 40px;
+            overflow-y: auto;
         }
 
         .dashboard-header {
@@ -131,10 +161,16 @@
             cursor: pointer;
             font-weight: 600;
             margin-top: 20px;
+            transition: 0.3s;
         }
 
         .btn-save:hover {
             background: #1C2C70;
+        }
+
+        .btn-save:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
         }
 
         .tabla {
@@ -207,13 +243,11 @@
             cursor: pointer;
         }
 
-        
         .btn-action-tab {
             background: none;
             border: none;
             cursor: pointer;
             font-size: 1.3rem;
-            /* Tamaño del icono */
             transition: transform 0.2s;
             padding: 0;
             line-height: 1;
@@ -230,7 +264,6 @@
             display: inline-block;
         }
 
-       
         #tabla-calibraciones td:last-child {
             min-width: 120px;
         }
@@ -240,11 +273,17 @@
 <body>
 
     <div class="layout">
-
         <aside class="sidebar">
-            <h2>LabAsset 360</h2>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="historico.html">Atras</a>
+            <div class="sidebar-brand">
+                <h2>LabAsset 360</h2>
+                <ul>
+                    <li onclick="window.location.href='dashboard.html'">📊 Dashboard</li>
+                    <li onclick="window.location.href='historico.html'">🔙 Atrás</li>
+                </ul>
+            </div>
+            <ul>
+                <li class="logout-btn" onclick="AuthEngine.logout()">🚪 Cerrar Sesión</li>
+            </ul>
         </aside>
 
         <main class="main">
@@ -291,7 +330,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="btn-save">Guardar Cambios</button>
+                    <button type="submit" class="btn-save" id="btn-guardar-general">Guardar Cambios</button>
                 </form>
             </div>
 
@@ -300,7 +339,7 @@
                     <h3>📍 Ubicación del Activo</h3>
                     <div>
                         <button onclick="irARegistrarUbicacion()" class="btn-save"
-                            style="padding: 5px 15px; font-size: 0.8rem;">➕ Nueva</button>
+                            style="padding: 5px 15px; font-size: 0.8rem; margin-top: 0;">➕ Nueva</button>
                         <button onclick="irAHistorialUbicacion()" class="btn-cancel"
                             style="padding: 5px 15px; font-size: 0.8rem; background:#666; color:white;">🕒
                             Historial</button>
@@ -319,7 +358,7 @@
             <div class="info-panel">
                 <h3>🔧 Mantenimientos</h3>
 
-                <button onclick="abrirModalMantenimiento()" class="btn-save">
+                <button onclick="abrirModalMantenimiento()" class="btn-save" style="margin-top: 10px;">
                     Registrar Mantenimiento
                 </button>
 
@@ -330,6 +369,7 @@
                             <th>Técnico</th>
                             <th>Tipo</th>
                             <th>Soporte</th>
+                            <th style="text-align:center;">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tabla-mantenimientos"></tbody>
@@ -339,7 +379,7 @@
             <div class="info-panel">
                 <h3>🧪 Calibraciones</h3>
 
-                <button class="btn-save" onclick="abrirModalCalibracion()">
+                <button class="btn-save" onclick="abrirModalCalibracion()" style="margin-top: 10px;">
                     Programar Calibración
                 </button>
 
@@ -349,6 +389,7 @@
                             <th>Fecha</th>
                             <th>Proveedor</th>
                             <th>Estado</th>
+                            <th>Soporte</th>
                             <th style="text-align: right;">Acciones</th>
                         </tr>
                     </thead>
@@ -360,990 +401,39 @@
                 <h3>✅ Confirmación de Aptitud</h3>
 
                 <div id="aptitud-box">
-
-                    
                     <div id="seccion-confirmacion">
-
                         <p style="color:#777;margin-bottom:15px;">
                             Verificación de parámetros críticos del equipo
                         </p>
 
                         <div id="lista-parametros" class="form-grid"></div>
 
-                        <button onclick="guardarAptitud()" class="btn-save">
+                        <button onclick="guardarAptitud()" id="btn-guardar-aptitud" class="btn-save">
                             Guardar Confirmación
                         </button>
-
                     </div>
 
-                    <!-- ===== MODO CHECKLIST ===== -->
                     <div id="seccion-checklist" style="display:none">
-
                         <h4>Resultados Guardados</h4>
-
                         <ul id="lista-resultados"></ul>
-
                         <button onclick="activarEdicion()" class="btn-save">
                             Editar
                         </button>
-
                     </div>
-
                 </div>
-
             </div>
 
             <div class="info-panel">
-
                 <h3>🏷️ Etiqueta Inteligente QR</h3>
-
                 <div id="qr-box">
-
                     <p style="color:#777;margin-bottom:15px;">
                         Genere una etiqueta inteligente para acceso rápido al modo kiosco del equipo.
                     </p>
-
-                    <button onclick="generarEtiquetaQR()" class="btn-save">
+                    <button onclick="generarEtiquetaQR()" class="btn-save" style="margin-top:0;">
                         Generar Etiqueta QR
                     </button>
-
-
-
                 </div>
-
             </div>
-
-            <script>
-
-                const API_URL = "https://labasset360.onrender.com";
-                const urlParams = new URLSearchParams(window.location.search);
-                const equipoId = urlParams.get('id');
-                let tipoEquipoId = null;
-                let tipoEquipoNombre = null;
-
-                async function cargarDetalle() {
-                    const id = new URLSearchParams(window.location.search).get('id');
-                    const res = await fetch(`${API_URL}/api/equipos/${equipoId}`);
-                    const e = await res.json();
-                    tipoEquipoNombre = e.tipo_nombre;
-
-                    document.getElementById('txt-codigo').innerText = e.codigo;
-                    document.getElementById('txt-tipo').innerText = e.tipo_nombre || "-";
-                    tipoEquipoId = e.tipo_equipo_id;
-                    await cargarParametrosAptitud();
-                    document.getElementById('ubicacion').value = e.ubicacion || "";
-                    document.getElementById('responsable').value = e.responsable || "";
-                    document.getElementById('estado').value = e.estado || "Operativo";
-                    controlarOpcionDevolucion(e.estado);
-
-                    const badge = document.getElementById('badge-estado');
-                    const estadoActual = (e.estado || "OPERATIVO").toUpperCase();
-                    badge.innerText = estadoActual;
-
-                    // 2. COLORES DINÁMICOS SEGÚN EL ESTADO REAL
-                   
-                    const estilos = {
-                        'OPERATIVO': { bg: '#e8f5e9', color: '#2e7d32' },
-                        'EN PRÉSTAMO': { bg: '#e3f2fd', color: '#1565c0' },
-                        'EN REVISIÓN': { bg: '#fff3e0', color: '#ef6c00' },
-                        'MANTENIMIENTO': { bg: '#fce4ec', color: '#c2185b' },
-                        'NO OPERATIVO': { bg: '#ffebee', color: '#c62828' }
-                    };
-
-                    const estilo = estilos[estadoActual] || { bg: '#eee', color: '#666' };
-                    badge.style.background = estilo.bg;
-                    badge.style.color = estilo.color;
-                    badge.style.padding = "5px 12px";
-                    badge.style.borderRadius = "12px";
-                    badge.style.fontWeight = "bold";
-                    badge.style.fontSize = "0.85rem";
-
-                    const salud = e.indice_salud || 0;
-                    const circulo = document.getElementById('circulo-salud');
-                    circulo.innerText = `${salud}%`;
-                    circulo.style.borderColor = salud > 70 ? '#2e7d32' : (salud > 40 ? '#f9a825' : '#c62828');
-
-                    await cargarMantenimientos();
-                    await cargarCalibraciones();
-                    await cargarParametrosAptitud();
-                    await cargarEvaluacionExistente();
-                    await cargarUltimaUbicacion();
-                    await cargarHistorialFallas(equipoId);
-                }
-
-                async function cargarMantenimientos() {
-                    try {
-                        const res = await fetch(`${API_URL}/api/equipos/${equipoId}/mantenimientos-pendientes`);
-                        const data = await res.json();
-                        const tbody = document.getElementById('tabla-mantenimientos');
-                        tbody.innerHTML = '';
-
-                        if (!data || data.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">Sin mantenimientos programados</td></tr>';
-                            return;
-                        }
-
-                        data.forEach(m => {
-                            const esCompletado = m.fecha_realizada || m.estado === 'completado';
-
-                            const iconoEstado = esCompletado ? '✅' :
-                                `<button class="btn-action-tab" onclick="abrirEjecucion('${m.id}', '${m.descripcion || ''}', '${m.tipo}')" title="Ejecutar">📝</button>`;
-
-                            const btnReprogramar = esCompletado ? '' :
-                                `<button class="btn-action-tab" onclick="abrirModalReprogramar('${m.id}', '${m.fecha_programada}')" title="Reprogramar">📅</button>`;
-
-                            const linkSoporte = m.soporte_url
-                                ? `<a href="${API_URL}${m.soporte_url}" target="_blank" class="btn-soporte-tab">📄</a>`
-                                : '<span style="color: #ccc;">---</span>';
-
-
-                            const responsableMostrar = m.tecnico ? m.tecnico : (m.descripcion || 'Sin asignar');
-
-                            tbody.innerHTML += `
-        <tr>
-            <td>${m.fecha_programada || '---'}</td>
-            <td>${responsableMostrar}</td>
-            <td><span class="status-badge" style="background: ${esCompletado ? '#e8f5e9' : '#fff3e0'}">${m.tipo || 'preventivo'}</span></td>
-            <td>${linkSoporte}</td>
-            <td style="text-align:center;">
-                ${iconoEstado}
-                ${btnReprogramar}
-            </td>
-        </tr>`;
-                        });
-                    } catch (error) {
-                        console.error("Error cargando mantenimientos:", error);
-                    }
-                }
-
-
-
-
-                async function cargarCalibraciones() {
-                    try {
-                        const res = await fetch(`${API_URL}/api/equipos/${equipoId}/calibraciones-pendientes`);
-                        const data = await res.json();
-                        const tbody = document.getElementById('tabla-calibraciones');
-                        tbody.innerHTML = '';
-
-                        if (!data || data.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">Sin calibraciones programadas</td></tr>';
-                            return;
-                        }
-
-                        data.forEach(cal => {
-
-                            const esCompletado = cal.estado === "completado";
-
-                            
-                            const iconoCompletado = `
-                <div style="
-                    background:#2e7d32;
-                    width:28px;
-                    height:28px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    border-radius:6px;
-                    color:white;
-                    font-size:14px;
-                ">
-                    ✔
-                </div>
-            `;
-
-                           
-                            const botonesPendiente = `
-                <button onclick="abrirEjecutarCal('${cal.id}')"
-                    style="background:none;border:none;cursor:pointer;font-size:1.2rem;"
-                    title="Finalizar">
-                    📝
-                </button>
-
-                <button onclick="abrirModalReprogramarCal('${cal.id}', '${cal.fecha_programada}')"
-                    style="background:none;border:none;cursor:pointer;font-size:1.2rem;margin-left:8px;"
-                    title="Reprogramar">
-                    📅
-                </button>
-            `;
-
-                            const linkCertificado = cal.certificado_url
-                                ? `<a href="${API_URL}${cal.certificado_url}" target="_blank"
-                     style="color:#243B8F;font-weight:bold;">📄 Ver Certificado</a>`
-                                : '<span style="color:#ccc;">Sin certificado</span>';
-
-                            tbody.innerHTML += `
-                <tr>
-                    <td>${cal.fecha_programada || '---'}</td>
-                    <td>${cal.proveedor || '---'}</td>
-                    <td>
-                        <span class="status-badge"
-                            style="
-                                background:${esCompletado ? '#e8f5e9' : '#fff3e0'};
-                                color:${esCompletado ? '#2e7d32' : '#ef6c00'};
-                            ">
-                            ${cal.estado}
-                        </span>
-                    </td>
-                    <td>${linkCertificado}</td>
-                    <td style="text-align:center;">
-                        ${esCompletado ? iconoCompletado : botonesPendiente}
-                    </td>
-                </tr>
-            `;
-                        });
-
-                    } catch (error) {
-                        console.error("Error cargando calibraciones:", error);
-                    }
-                }
-
-                async function cargarParametrosAptitud() {
-
-                    if (!tipoEquipoNombre) return;
-
-                    const res = await fetch(`${API_URL}/api/pruebas-por-equipo/${tipoEquipoNombre}`);
-
-                    if (!res.ok) {
-                        console.warn("No hay pruebas configuradas");
-                        return;
-                    }
-
-                    const pruebas = await res.json();
-
-                    const cont = document.getElementById("lista-parametros");
-                    if (!cont) return;
-
-                    cont.innerHTML = "";
-
-                    if (pruebas.length === 0) {
-                        cont.innerHTML = `<p style="color:#999;">No hay pruebas configuradas</p>`;
-                        return;
-                    }
-
-                    pruebas.forEach(p => {
-                        cont.innerHTML += `
-<div class="field" style="border:1px solid #eee;padding:10px;margin-bottom:10px;border-radius:8px;">
-
-<label><b>${p.nombre}</b></label>
-
-<input
-type="number"
-id="valor_${p.id}"
-placeholder="Valor obtenido"
-oninput="evaluarManual(${p.id})"
-/>
-
-<br><br>
-
-<label>Tipo de criterio</label>
-<select id="tipo_${p.id}" onchange="evaluarManual(${p.id})">
-<option value="">Seleccionar</option>
-<option value="rango">Rango</option>
-<option value="max">Máximo</option>
-<option value="min">Mínimo</option>
-<option value="igual">Igual a</option>
-</select>
-
-<br><br>
-
-<input
-type="number"
-id="min_${p.id}"
-placeholder="Mínimo"
-oninput="evaluarManual(${p.id})"
-/>
-
-<input
-type="number"
-id="max_${p.id}"
-placeholder="Máximo"
-oninput="evaluarManual(${p.id})"
-/>
-
-<div id="resultado_${p.id}" style="font-weight:bold;margin-top:5px;"></div>
-
-</div>
-`;
-                    });
-
-                }
-
-                async function cargarEvaluacionExistente() {
-
-                    const res = await fetch(`${API_URL}/api/evaluacion-existente/${equipoId}`);
-
-                    if (!res.ok) return;
-
-                    const data = await res.json();
-
-                    if (!data || data.length === 0) return;
-
-                    renderChecklist(data);
-                    cambiarAModoChecklist();
-
-                }
-
-                function evaluarManual(id) {
-
-                    const valor = parseFloat(document.getElementById(`valor_${id}`).value);
-                    const tipo = document.getElementById(`tipo_${id}`).value;
-                    const min = parseFloat(document.getElementById(`min_${id}`).value);
-                    const max = parseFloat(document.getElementById(`max_${id}`).value);
-                    const resultado = document.getElementById(`resultado_${id}`);
-
-                    if (isNaN(valor) || !tipo) {
-                        resultado.innerHTML = "";
-                        return;
-                    }
-
-                    let cumple = false;
-
-                    if (tipo === "rango") {
-                        if (!isNaN(min) && !isNaN(max)) {
-                            cumple = valor >= min && valor <= max;
-                        }
-                    }
-                    else if (tipo === "max") {
-                        if (!isNaN(max)) {
-                            cumple = valor <= max;
-                        }
-                    }
-                    else if (tipo === "min") {
-                        if (!isNaN(min)) {
-                            cumple = valor >= min;
-                        }
-                    }
-                    else if (tipo === "igual") {
-                        if (!isNaN(min)) {
-                            cumple = valor === min;
-                        }
-                    }
-
-                    resultado.innerHTML = cumple ? "✔️ Cumple" : "❌ No cumple";
-                    resultado.style.color = cumple ? "green" : "red";
-                }
-
-                document.getElementById('detalleForm').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-
-                    const estadoSeleccionado = document.getElementById('estado').value;
-
-                    // SI ES PRÉSTAMO: Redirigir antes de guardar
-                    if (estadoSeleccionado === "En prestamo") {
-                        // Guardar  la ubicación y responsable actual en sesión por si acaso
-                        sessionStorage.setItem('pending_ubicacion', document.getElementById('ubicacion').value);
-
-                        // Redirigir a la página de préstamos
-                        window.location.href = `gestion-prestamo.html?id=${equipoId}`;
-                        return;
-                    }
-
-                    // SI ES OTRO ESTADO: Guardar normalmente
-                    const fd = new FormData();
-                    fd.append('ubicacion', document.getElementById('ubicacion').value);
-                    fd.append('responsable', document.getElementById('responsable').value);
-                    fd.append('estado', estadoSeleccionado);
-
-                    try {
-                        const res = await fetch(`${API_URL}/api/equipos/${equipoId}`, {
-                            method: 'PATCH',
-                            body: fd
-                        });
-
-                        if (res.ok) {
-                            
-                            await cargarDetalle();
-                            alert("✅ Cambios guardados y estado actualizado.");
-                        } else {
-                            alert("Error al actualizar los datos.");
-                        }
-                    } catch (err) {
-                        console.error(err);
-                    }
-                });
-
-                function abrirModalMantenimiento() {
-                    document.getElementById('modalProgramarMantenimiento').style.display = "flex";
-                }
-
-                function cerrarModalMantenimiento() {
-                    document.getElementById('modalProgramarMantenimiento').style.display = "none";
-                }
-
-                function sumarMeses(fecha, meses) {
-                    const d = new Date(fecha);
-                    d.setMonth(d.getMonth() + meses);
-                    return d.toISOString().split('T')[0];
-                }
-
-                // 1. Función para mostrar el modal de calibración
-                function abrirModalCalibracion() {
-                    document.getElementById('modalCalibracion').style.display = "flex";
-                }
-
-                // 2. Función para cerrar el modal
-                function cerrarModalCalibracion() {
-                    document.getElementById('modalCalibracion').style.display = "none";
-                }
-
-                function cerrarModal(id) {
-                    document.getElementById(id).style.display = "none";
-                }
-
-                async function guardarReprogramacion() {
-                    const idMante = document.getElementById('repro_id').value;
-                    const nuevaFecha = document.getElementById('repro_nueva_fecha').value;
-                    const motivo = document.getElementById('repro_observacion').value; // El valor del textarea
-
-                    try {
-                        const res = await fetch(`${API_URL}/api/mantenimientos/${idMante}/reprogramar`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                fecha_programada: nuevaFecha,
-                                
-                                observaciones_modificacion: motivo
-                            })
-                        });
-
-                        if (res.ok) {
-                            alert("Reprogramación guardada correctamente");
-                            location.reload();
-                        }
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
-                }
-
-                // Función para cerrar el modal 
-                function cerrarModalReprogramar() {
-                    document.getElementById('modalReprogramar').style.display = 'none';
-                }
-
-                // 3. Función para enviar los datos al servidor
-                async function guardarCalibracion() {
-                    const data = {
-                        fecha_programada: document.getElementById('c_fecha').value,
-                        proveedor: document.getElementById('c_proveedor').value,
-                        estado: 'pendiente'
-                    };
-
-                    if (!data.fecha_programada || !data.proveedor) {
-                        alert("Por favor completa todos los campos");
-                        return;
-                    }
-
-                    try {
-                        const res = await fetch(`${API_URL}/api/equipos/${equipoId}/calibraciones`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(data)
-                        });
-
-                        if (res.ok) {
-                            cerrarModalCalibracion();
-                            await cargarCalibraciones(); 
-                            alert("Calibración programada con éxito");
-                        } else {
-                            alert("Error al guardar la calibración");
-                        }
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
-                }
-
-
-
-                function calcularProximaMantenimiento() {
-                    const fecha = document.getElementById('m_fecha').value;
-                    if (!fecha) return;
-
-                    let meses = document.getElementById('m_periodicidad').value;
-                    if (meses === "custom") {
-                        meses = parseInt(document.getElementById('m_periodicidad_custom').value || 0);
-                    }
-                    if (meses > 0) {
-                        document.getElementById('m_proxima').value = sumarMeses(fecha, parseInt(meses));
-                    }
-                }
-
-                async function guardarProgramacion() {
-                    const data = {
-                        fecha_programada: document.getElementById('p_m_fecha').value,
-                        tecnico: document.getElementById('p_m_tecnico').value,
-                        tipo: document.getElementById('p_m_tipo').value,
-                        estado: 'pendiente'
-                    };
-
-                    const res = await fetch(`${API_URL}/api/equipos/${equipoId}/mantenimientos`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data)
-                    });
-
-                    if (res.ok) {
-                        cerrarModal('modalProgramarMantenimiento');
-                        await cargarMantenimientos();
-                    }
-                }
-
-                async function guardarEjecucion() {
-                    const idMant = document.getElementById('edit_m_id').value;
-                    const formData = new FormData();
-
-                    formData.append('fecha_realizada', document.getElementById('e_m_fecha_real').value);
-                    formData.append('tecnico', document.getElementById('e_m_tecnico').value);
-                    formData.append('estado', 'completado');
-
-                    const diasFuera = document.getElementById('e_m_dias_fuera')?.value || 0;
-                    const severidad = document.getElementById('e_m_severidad')?.value || 1;
-
-                    formData.append('tiempo_fuera_servicio', diasFuera);
-                    formData.append('severidad', severidad);
-
-                    const file = document.getElementById('e_m_soporte').files[0];
-                    if (file) formData.append('soporte', file);
-
-                    const res = await fetch(`${API_URL}/api/mantenimientos/${idMant}/ejecutar`, {
-                        method: 'PUT',
-                        body: formData
-                    });
-
-                    if (res.ok) {
-                        cerrarModal('modalEjecutarMantenimiento');
-                        await cargarMantenimientos();
-                        await cargarDetalle();
-                    }
-                }
-
-                function abrirEjecucion(idMant, tecnico, tipo) {
-                    document.getElementById('edit_m_id').value = idMant;
-                    document.getElementById('e_m_tecnico').value = tecnico;
-                    if (tipo === "correctivo") {
-                        document.getElementById('bloqueCorrectivo').style.display = "block";
-                    } else {
-                        document.getElementById('bloqueCorrectivo').style.display = "none";
-                    }
-                    document.getElementById('modalEjecutarMantenimiento').style.display = 'flex';
-                }
-
-                function cerrarModal(id) {
-                    document.getElementById(id).style.display = 'none';
-                }
-
-                function abrirEjecutarCal(id) {
-                    document.getElementById("exec_cal_id").value = id;
-                    document.getElementById("exec_cal_fecha").value = "";
-                    document.getElementById("exec_cal_resultado").value = "Aprobado";
-                    document.getElementById("exec_cal_obs").value = "";
-                    document.getElementById("exec_cal_certificado").value = "";
-
-                    document.getElementById("modalEjecutarCal").style.display = "flex";
-                }
-
-                async function guardarEjecucionCal() {
-
-                    const id = document.getElementById("exec_cal_id").value;
-                    const fecha = document.getElementById("exec_cal_fecha").value;
-                    const resultado = document.getElementById("exec_cal_resultado").value;
-                    const obs = document.getElementById("exec_cal_obs").value;
-                    const file = document.getElementById("exec_cal_certificado").files[0];
-
-                    if (!fecha) {
-                        alert("Debe ingresar la fecha realizada");
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append("fecha_realizada", fecha);
-                    formData.append("resultado", resultado);
-                    formData.append("observaciones", obs);
-
-                    if (file) {
-                        formData.append("certificado", file);
-                    }
-
-                    try {
-                        const res = await fetch(`${API_URL}/api/calibraciones/${id}/finalizar`, {
-                            method: "PATCH",
-                            body: formData
-                        });
-
-                        if (res.ok) {
-                            cerrarModal("modalEjecutarCal");
-                            await cargarCalibraciones();
-                            alert("✅ Calibración finalizada correctamente");
-                        } else {
-                            alert("Error al finalizar calibración");
-                        }
-
-                    } catch (error) {
-                        console.error(error);
-                    }
-                }
-
-                function abrirModalReprogramar(id, fechaActual) {
-                    document.getElementById('repro_id').value = id;
-                    document.getElementById('repro_nueva_fecha').value = fechaActual;
-                    document.getElementById('modalReprogramar').style.display = 'flex';
-                }
-
-                function cerrarModalReprogramar() {
-                    document.getElementById('modalReprogramar').style.display = 'none';
-                }
-
-                async function guardarReprogramacionCal() {
-
-                    const id = document.getElementById("repro_cal_id").value;
-                    const nuevaFecha = document.getElementById("repro_cal_nueva_fecha").value;
-                    const observacion = document.getElementById("repro_cal_observacion").value;
-
-                    if (!nuevaFecha) {
-                        alert("Debe seleccionar una nueva fecha");
-                        return;
-                    }
-
-                    try {
-
-                        const res = await fetch(`${API_URL}/api/calibraciones/${id}/reprogramar`, {
-                            method: "PATCH",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                fecha_programada: nuevaFecha,
-                                observaciones: observacion
-                            })
-                        });
-
-                        if (res.ok) {
-                            cerrarModal("modalReprogramarCal");
-                            await cargarCalibraciones();
-                            alert("✅ Calibración reprogramada correctamente");
-                        } else {
-                            alert("Error al reprogramar");
-                        }
-
-                    } catch (error) {
-                        console.error(error);
-                        alert("Error del servidor");
-                    }
-                }
-
-                function handleCambioEstado(valor) {
-
-                    const id = new URLSearchParams(window.location.search).get("id");
-
-                    // Si selecciona devolución
-                    if (valor === "Devolucion") {
-
-                        // Redirige a gestion-prestamo en modo regreso
-                        window.location.href = `gestion-prestamo.html?id=${id}&modo=regreso`;
-
-                        return;
-                    }
-
-                }
-
-                function controlarOpcionDevolucion(estadoActual) {
-
-                    const select = document.getElementById("estado");
-
-                    if (estadoActual !== "En prestamo") {
-
-                        const opcion = Array.from(select.options)
-                            .find(opt => opt.value === "Devolucion");
-
-                        if (opcion) opcion.remove();
-                    }
-                }
-
-
-
-
-                function cambiarAModoChecklist() {
-
-                    document.getElementById("seccion-confirmacion").style.display = "none";
-                    document.getElementById("seccion-checklist").style.display = "block";
-
-                }
-
-                function activarEdicion() {
-
-                    document.getElementById("seccion-confirmacion").style.display = "block";
-                    document.getElementById("seccion-checklist").style.display = "none";
-
-                }
-
-                function renderChecklist(resultados) {
-                    const lista = document.getElementById("lista-resultados");
-                    lista.innerHTML = "";
-
-                    
-                    lista.style.display = "grid";
-                    lista.style.direction = "ltr";
-                    lista.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
-                    lista.style.gap = "15px";
-                    lista.style.marginTop = "15px";
-
-                    resultados.forEach(r => {
-                        const card = document.createElement("div");
-                        const esCumple = r.cumple === "Cumple" || r.cumple === true;
-
-                        card.style.background = "#fff";
-                        card.style.borderLeft = `5px solid ${esCumple ? '#2e7d32' : '#c62828'}`;
-                        card.style.padding = "15px";
-                        card.style.borderRadius = "8px";
-                        card.style.boxShadow = "0 2px 6px rgba(0,0,0,0.05)";
-                        card.style.fontSize = "13px";
-
-                        card.innerHTML = `
-            <div style="font-weight:bold; color:#243B8F; margin-bottom:5px;">${r.prueba_nombre}</div>
-            <div style="color:#666;">Valor: <b>${r.valor_obtenido}</b></div>
-            <div style="color:#888; font-size:11px; margin-bottom:8px;">Criterio: ${r.criterio_aplicado}</div>
-            <span style="
-                padding:3px 8px;
-                border-radius:12px;
-                background:${esCumple ? '#e8f5e9' : '#ffebee'};
-                color:${esCumple ? '#2e7d32' : '#c62828'};
-                font-size:11px;
-                font-weight:bold;">
-                ${esCumple ? '✔ CUMPLE' : '❌ NO CUMPLE'}
-            </span>
-        `;
-                        lista.appendChild(card);
-                    });
-                }
-
-                async function guardarAptitud() {
-
-                    const inputs = document.querySelectorAll('[id^="valor_"]');
-
-                    if (inputs.length === 0) {
-                        alert("No hay pruebas");
-                        return;
-                    }
-
-                    const payload = {
-                        equipo_id: equipoId,
-                        responsable: "Operador",
-                        resultados: []
-                    };
-
-                    inputs.forEach(i => {
-
-                        const id = i.id.replace("valor_", "");
-
-                        const valor = parseFloat(document.getElementById(`valor_${id}`).value);
-                        const tipo = document.getElementById(`tipo_${id}`).value;
-                        const min = parseFloat(document.getElementById(`min_${id}`).value);
-                        const max = parseFloat(document.getElementById(`max_${id}`).value);
-
-                        if (!isNaN(valor)) {
-
-                            let cumple = false;
-
-                            if (tipo === "rango") cumple = valor >= min && valor <= max;
-                            if (tipo === "max") cumple = valor <= max;
-                            if (tipo === "min") cumple = valor >= min;
-                            if (tipo === "igual") cumple = valor === min;
-
-                            payload.resultados.push({
-                                prueba_id: parseInt(id),
-                                valor_obtenido: valor.toString(),
-                                criterio_aplicado: tipo,
-                                valor_min: isNaN(min) ? null : min,
-                                valor_max: isNaN(max) ? null : max,
-                                cumple: cumple
-                            });
-                        }
-                    });
-
-                    const res = await fetch(`${API_URL}/api/evaluar-equipo`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const data = await res.json();
-
-                    renderChecklist(data.resultados);
-                    cambiarAModoChecklist();
-
-                    alert("Evaluación guardada ✅");
-
-                    alert("Evaluación guardada ✅");
-                }
-
-                document.addEventListener("DOMContentLoaded", function () {
-
-                    cargarDetalle();
-
-                    /* ===== MANTENIMIENTO ===== */
-                    const m_fecha = document.getElementById('m_fecha');
-                    const m_periodicidad = document.getElementById('m_periodicidad');
-
-                    if (m_fecha) {
-                        m_fecha.addEventListener('change', calcularProximaMantenimiento);
-                    }
-
-                    if (m_periodicidad) {
-                        m_periodicidad.addEventListener('change', function () {
-                            if (this.value === "custom") {
-                                document.getElementById('m_periodicidad_custom_box').style.display = "block";
-                            } else {
-                                document.getElementById('m_periodicidad_custom_box').style.display = "none";
-                            }
-                            calcularProximaMantenimiento();
-                        });
-                    }
-
-
-
-                });
-
-                // Abre el modal y guarda el ID de la calibración que vamos a afectar
-                function abrirModalEjecutarCal(id) {
-                    document.getElementById('exec_cal_id').value = id;
-                    document.getElementById('modalEjecutarCal').style.display = 'flex';
-                }
-
-                // Envía el PDF y el resultado al Backend
-                async function enviarEjecucionCal() {
-                    const id = document.getElementById('exec_cal_id').value;
-                    const resultado = document.getElementById('exec_cal_resultado').value;
-                    const archivoInput = document.getElementById('exec_cal_archivo');
-
-                    if (!archivoInput.files[0]) {
-                        alert("Por favor, selecciona el certificado en PDF");
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append('file', archivoInput.files[0]);
-                    formData.append('resultado', resultado);
-
-                    try {
-                        // Ajusta esta URL según tu backend, normalmente es un endpoint de 'completar'
-                        const res = await fetch(`${API_URL}/api/calibraciones/${id}/completar`, {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        if (res.ok) {
-                            alert("Calibración finalizada con éxito");
-                            document.getElementById('modalEjecutarCal').style.display = 'none';
-                            cargarCalibraciones(); 
-                        } else {
-                            const errorData = await res.json();
-                            alert("Error: " + (errorData.detail || "No se pudo guardar"));
-                        }
-                    } catch (error) {
-                        console.error("Error al enviar calibración:", error);
-                        alert("Error de conexión con el servidor");
-                    }
-                }
-
-                function abrirModalReprogramarCal(id, fechaActual) {
-
-                    document.getElementById("repro_cal_id").value = id;
-
-                    if (fechaActual) {
-                        document.getElementById("repro_cal_nueva_fecha").value = fechaActual;
-                    }
-
-                    document.getElementById("repro_cal_observacion").value = "";
-
-                    document.getElementById("modalReprogramarCal").style.display = "flex";
-                }
-
-                async function cargarHistorialFallas(equipoId) {
-                    try {
-                        const res = await fetch(`${API_URL}/api/equipos/${equipoId}/fallas`);
-                        if (!res.ok) throw new Error("Error al cargar historial");
-
-                        const fallas = await res.json();
-                        const contenedor = document.getElementById('contenedor-historial-fallas');
-
-                        if (fallas.length === 0) {
-                            contenedor.innerHTML = "<p>No hay fallas registradas para este equipo.</p>";
-                            return;
-                        }
-
-                        contenedor.innerHTML = fallas.map(f => `
-            <div style="border-left: 4px solid #ef4444; padding: 12px; margin-bottom: 10px; background: #fff5f5; border-radius: 0 8px 8px 0;">
-                <div style="display: flex; justify-content: space-between;">
-                    <strong style="color: #1C2C70;">${f.tipo.toUpperCase()}</strong>
-                    <span style="font-size: 12px; background: #fee2e2; padding: 2px 8px; border-radius: 4px;">${f.urgencia}</span>
-                </div>
-                <p style="margin: 8px 0; font-size: 14px;">${f.descripcion}</p>
-                <small style="color: #64748b;">${new Date(f.fecha_reporte).toLocaleDateString()}</small>
-            </div>
-        `).join('');
-
-                    } catch (error) {
-                        console.error(error);
-                        document.getElementById('contenedor-historial-fallas').innerHTML = "Error al cargar el historial.";
-                    }
-                }
-
-                // 1. Función para obtener datos de la API
-                async function cargarUltimaUbicacion() {
-                    try {
-                        const res = await fetch(`${API_URL}/api/equipos/${equipoId}/historial-ubicaciones`);
-                        const historial = await res.json();
-
-                        if (historial && historial.length > 0) {
-                            const ultima = historial[0]; // La API suele devolver la más reciente primero
-                            document.getElementById("ub-nombre").innerText = ultima.nombre_personalizado;
-                            document.getElementById("ub-dir").innerText = ultima.direccion_texto;
-
-                            // Botón para Google Maps
-                            document.getElementById("btn-llegar-container").innerHTML = `
-                <a href="https://www.google.com/maps/search/?api=1&query=${ultima.latitud},${ultima.longitud}"
-                   target="_blank" class="btn-save" style="text-decoration:none; display:inline-block; font-size:0.8rem; padding:8px 12px; background:#27ae60;">
-                   🚗 Ver en Google Maps / Waze
-                </a>
-            `;
-                        } else {
-                            document.getElementById("ub-nombre").innerText = "Sin ubicación registrada";
-                            document.getElementById("ub-dir").innerText = "N/A";
-                        }
-                    } catch (e) {
-                        console.error("Error cargando ubicación:", e);
-                    }
-                }
-
-                // 2. Navegación
-                function irARegistrarUbicacion() {
-                    window.location.href = `mapa-ubicacion.html?id=${equipoId}`;
-                }
-
-                function irAHistorialUbicacion() {
-
-                    window.location.href = `mapa-ubicacion.html?id=${equipoId}&ver=historial`;
-                }
-
-                function generarEtiquetaQR() {
-
-                    const id = new URLSearchParams(window.location.search).get("id");
-
-                    if (!id) {
-                        alert("No se encontró el equipo");
-                        return;
-                    }
-
-                    window.open(
-                        `etiqueta-qr.html?id=${id}`,
-                        "_blank",
-                        "width=950,height=750"
-                    );
-
-                }
-
-
-            </script>
 
             <div id="modalProgramarMantenimiento" class="modal-overlay">
                 <div class="modal" style="max-width: 400px;">
@@ -1366,7 +456,8 @@ oninput="evaluarManual(${p.id})"
                         </div>
                     </div>
                     <div class="modal-actions">
-                        <button onclick="guardarProgramacion()" class="btn-save">Confirmar Programación</button>
+                        <button onclick="guardarProgramacion()" id="btn-guardar-prog" class="btn-save"
+                            style="margin-top:0;">Confirmar Programación</button>
                         <button onclick="cerrarModal('modalProgramarMantenimiento')"
                             class="btn-cancel">Cancelar</button>
                     </div>
@@ -1407,7 +498,8 @@ oninput="evaluarManual(${p.id})"
                         </div>
                     </div>
                     <div class="modal-actions">
-                        <button onclick="guardarEjecucion()" class="btn-save">Cerrar Mantenimiento</button>
+                        <button onclick="guardarEjecucion()" id="btn-cerrar-mant" class="btn-save"
+                            style="margin-top:0;">Cerrar Mantenimiento</button>
                         <button onclick="cerrarModal('modalEjecutarMantenimiento')" class="btn-cancel">Volver</button>
                     </div>
                 </div>
@@ -1419,19 +511,28 @@ oninput="evaluarManual(${p.id})"
                     <input type="hidden" id="exec_cal_id">
                     <div class="form-grid">
                         <div>
+                            <label>Fecha Realizada</label>
+                            <input type="date" id="exec_cal_fecha">
+                        </div>
+                        <div>
                             <label>Resultado</label>
                             <select id="exec_cal_resultado">
                                 <option value="Aprobado">Aprobado</option>
                                 <option value="Rechazado">Rechazado</option>
                             </select>
                         </div>
-                        <div>
+                        <div style="grid-column: span 2;">
+                            <label>Observaciones</label>
+                            <input type="text" id="exec_cal_obs" placeholder="Novedades durante la calibración...">
+                        </div>
+                        <div style="grid-column: span 2;">
                             <label>Archivo de Soporte (PDF)</label>
                             <input type="file" id="exec_cal_archivo" accept=".pdf">
                         </div>
                     </div>
                     <div class="modal-actions">
-                        <button onclick="enviarEjecucionCal()" class="btn-save">Subir y Completar</button>
+                        <button onclick="enviarEjecucionCal()" id="btn-cerrar-cal" class="btn-save"
+                            style="margin-top:0;">Subir y Completar</button>
                         <button onclick="document.getElementById('modalEjecutarCal').style.display='none'"
                             class="btn-cancel">Cancelar</button>
                     </div>
@@ -1452,68 +553,690 @@ oninput="evaluarManual(${p.id})"
                         </div>
                     </div>
                     <div class="modal-actions">
-                        <button onclick="guardarCalibracion()" class="btn-save">Confirmar</button>
-                        <button onclick="cerrarModalCalibracion()" class="btn-cancel">Cancelar</button>
+                        <button onclick="guardarCalibracion()" id="btn-prog-cal" class="btn-save"
+                            style="margin-top:0;">Confirmar</button>
+                        <button onclick="cerrarModal('modalCalibracion')" class="btn-cancel">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="modalReprogramar" class="modal-overlay">
+                <div class="modal" style="max-width: 400px;">
+                    <h3>Reprogramar Mantenimiento</h3>
+                    <input type="hidden" id="repro_id">
+                    <div class="modal-grid" style="grid-template-columns: 1fr;">
+                        <div>
+                            <label>Nueva Fecha</label>
+                            <input type="date" id="repro_nueva_fecha">
+                        </div>
+                        <div>
+                            <label>Motivo de Reprogramación</label>
+                            <textarea id="repro_observacion"
+                                style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical; min-height:80px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button onclick="guardarReprogramacion()" id="btn-save-repro" class="btn-save"
+                            style="margin-top:0;">Confirmar</button>
+                        <button onclick="cerrarModal('modalReprogramar')" class="btn-cancel">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="modalReprogramarCal" class="modal-overlay">
+                <div class="modal" style="max-width: 400px;">
+                    <h3>Reprogramar Calibración</h3>
+                    <input type="hidden" id="repro_cal_id">
+                    <div class="modal-grid" style="grid-template-columns: 1fr;">
+                        <div>
+                            <label>Nueva Fecha</label>
+                            <input type="date" id="repro_cal_nueva_fecha">
+                        </div>
+                        <div>
+                            <label>Motivo de Reprogramación</label>
+                            <textarea id="repro_cal_observacion"
+                                style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; resize:vertical; min-height:80px;"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button onclick="guardarReprogramacionCal()" id="btn-repro-cal" class="btn-save"
+                            style="margin-top:0;">Confirmar</button>
+                        <button onclick="cerrarModal('modalReprogramarCal')" class="btn-cancel">Cancelar</button>
                     </div>
                 </div>
             </div>
 
             <div class="card-seccion"
-                style="margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-                <h3 style="color: #243B8F; margin-bottom: 15px;">Historial de Anomalías</h3>
+                style="margin-top: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);">
+                <h3 style="color: #243B8F; margin-bottom: 15px;">⚠️ Historial de Anomalías (Fallas)</h3>
                 <div id="contenedor-historial-fallas">
                     <p style="color: #64748b;">Cargando historial...</p>
                 </div>
             </div>
 
-            
+        </main>
+    </div>
 
-            <div id="voice-indicator"
-                style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
-                onclick="VoiceEngine.toggle()">
-                <!-- Imagen por defecto (Desactivado) -->
-                <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
-                    style="width: 110px; height: 110px; object-fit: contain;">
-                <!-- Imagen cuando está activo (Oculta por defecto) -->
-                <img src="activado.png" class="icon-on" alt="Micrófono Activado"
-                    style="width: 110px; height: 110px; object-fit: contain; display: none;">
-            </div>
+    <div id="voice-indicator"
+        style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
+        onclick="VoiceEngine.toggle()">
+        <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
+            style="width: 110px; height: 110px; object-fit: contain;">
+        <img src="activado.png" class="icon-on" alt="Micrófono Activado"
+            style="width: 110px; height: 110px; object-fit: contain; display: none;">
+    </div>
 
-            <style>
-                
-                #voice-indicator.active {
-                    background: #e74c3c !important;
-                    animation: pulseVoice 1.5s infinite;
+    <style>
+        #voice-indicator.active {
+            background: #e74c3c !important;
+            animation: pulseVoice 1.5s infinite;
+        }
+
+        #voice-indicator.active .icon-off {
+            display: none !important;
+        }
+
+        #voice-indicator.active .icon-on {
+            display: block !important;
+        }
+
+        @keyframes pulseVoice {
+            0% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+            }
+        }
+    </style>
+
+    <script src="js/voice-engine.js"></script>
+
+    <script>
+        // ==========================================
+        // ARQUITECTURA DE SEGURIDAD Y CONFIGURACIÓN
+        // ==========================================
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000'
+            : '';
+
+        const AuthEngine = {
+            getToken() { return localStorage.getItem("access_token"); },
+            logout() {
+                localStorage.clear();
+                window.location.replace("index.html");
+            },
+            getAuthHeaders() {
+                return {
+                    'Authorization': `Bearer ${this.getToken()}`,
+                    'Content-Type': 'application/json'
+                };
+            },
+            verificarExpiracion(res) {
+                if (res.status === 401 || res.status === 403) {
+                    this.logout();
+                    throw new Error("Sesión expirada");
+                }
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const equipoId = urlParams.get('id');
+        let tipoEquipoNombre = null;
+
+        // ==========================================
+        // CARGA DE DATOS PRINCIPALES
+        // ==========================================
+        async function cargarDetalle() {
+            if (!equipoId) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${equipoId}`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(res);
+                const e = await res.json();
+
+                tipoEquipoNombre = e.tipo_nombre;
+                document.getElementById('txt-codigo').innerText = e.codigo;
+                document.getElementById('txt-tipo').innerText = e.tipo_nombre || "-";
+                document.getElementById('ubicacion').value = e.ubicacion || "";
+                document.getElementById('responsable').value = e.responsable || "";
+                document.getElementById('estado').value = e.estado || "Operativo";
+
+                controlarOpcionDevolucion(e.estado);
+
+                const badge = document.getElementById('badge-estado');
+                const estadoActual = (e.estado || "OPERATIVO").toUpperCase();
+                badge.innerText = estadoActual;
+
+                const estilos = {
+                    'OPERATIVO': { bg: '#e8f5e9', color: '#2e7d32' },
+                    'EN PRESTAMO': { bg: '#e3f2fd', color: '#1565c0' },
+                    'EN REVISIÓN': { bg: '#fff3e0', color: '#ef6c00' },
+                    'MANTENIMIENTO': { bg: '#fce4ec', color: '#c2185b' },
+                    'NO OPERATIVO': { bg: '#ffebee', color: '#c62828' }
+                };
+
+                const estilo = estilos[estadoActual] || { bg: '#eee', color: '#666' };
+                badge.style.background = estilo.bg;
+                badge.style.color = estilo.color;
+
+                const salud = e.indice_salud || 0;
+                const circulo = document.getElementById('circulo-salud');
+                circulo.innerText = `${salud}%`;
+                circulo.style.borderColor = salud > 70 ? '#2e7d32' : (salud > 40 ? '#f9a825' : '#c62828');
+
+                // Disparar las cargas asíncronas secundarias
+                await cargarMantenimientos();
+                await cargarCalibraciones();
+                await cargarParametrosAptitud();
+                await cargarEvaluacionExistente();
+                await cargarUltimaUbicacion();
+                await cargarHistorialFallas(equipoId);
+
+            } catch (error) {
+                console.error("Error al cargar detalles del activo:", error);
+            }
+        }
+
+        // ==========================================
+        // MANTENIMIENTOS
+        // ==========================================
+        async function cargarMantenimientos() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${equipoId}/mantenimientos-pendientes`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(res);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-mantenimientos');
+                tbody.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">Sin mantenimientos programados</td></tr>';
+                    return;
                 }
 
-                /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
-                #voice-indicator.active .icon-off {
-                    display: none !important;
+                data.forEach(m => {
+                    const esCompletado = m.fecha_realizada || m.estado === 'completado';
+                    const iconoEstado = esCompletado ? '✅' : `<button class="btn-action-tab" onclick="abrirEjecucion('${m.id}', '${m.descripcion || ''}', '${m.tipo}')" title="Ejecutar">📝</button>`;
+                    const btnReprogramar = esCompletado ? '' : `<button class="btn-action-tab" onclick="abrirModalReprogramar('${m.id}', '${m.fecha_programada}')" title="Reprogramar">📅</button>`;
+                    const linkSoporte = m.soporte_url ? `<a href="${API_BASE_URL}${m.soporte_url}" target="_blank" class="btn-soporte-tab">📄</a>` : '<span style="color: #ccc;">---</span>';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${m.fecha_programada || '---'}</td>
+                            <td>${m.tecnico || m.descripcion || 'Sin asignar'}</td>
+                            <td><span class="status-badge" style="background: ${esCompletado ? '#e8f5e9' : '#fff3e0'}">${m.tipo || 'preventivo'}</span></td>
+                            <td>${linkSoporte}</td>
+                            <td style="text-align:center;">${iconoEstado} ${btnReprogramar}</td>
+                        </tr>`;
+                });
+            } catch (error) { console.error(error); }
+        }
+
+        async function guardarProgramacion() {
+            const btn = document.getElementById("btn-guardar-prog");
+            btn.disabled = true;
+            const data = {
+                fecha_programada: document.getElementById('p_m_fecha').value,
+                tecnico: document.getElementById('p_m_tecnico').value,
+                tipo: document.getElementById('p_m_tipo').value,
+                estado: 'pendiente'
+            };
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${equipoId}/mantenimientos`, {
+                    method: 'POST',
+                    headers: AuthEngine.getAuthHeaders(),
+                    body: JSON.stringify(data)
+                });
+                AuthEngine.verificarExpiracion(res);
+                if (res.ok) {
+                    cerrarModal('modalProgramarMantenimiento');
+                    await cargarMantenimientos();
+                }
+            } catch (e) { console.error(e); } finally { btn.disabled = false; }
+        }
+
+        async function guardarEjecucion() {
+            const btn = document.getElementById("btn-cerrar-mant");
+            btn.disabled = true;
+            const idMant = document.getElementById('edit_m_id').value;
+            const formData = new FormData();
+
+            formData.append('fecha_realizada', document.getElementById('e_m_fecha_real').value);
+            formData.append('tecnico', document.getElementById('e_m_tecnico').value);
+            formData.append('estado', 'completado');
+            formData.append('tiempo_fuera_servicio', document.getElementById('e_m_dias_fuera')?.value || 0);
+            formData.append('severidad', document.getElementById('e_m_severidad')?.value || 1);
+
+            const file = document.getElementById('e_m_soporte').files[0];
+            if (file) formData.append('soporte', file);
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/mantenimientos/${idMant}/ejecutar`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${AuthEngine.getToken()}` }, // Ojo: Content-Type no va para FormData
+                    body: formData
+                });
+                AuthEngine.verificarExpiracion(res);
+                if (res.ok) {
+                    cerrarModal('modalEjecutarMantenimiento');
+                    await cargarDetalle();
+                }
+            } catch (e) { console.error(e); } finally { btn.disabled = false; }
+        }
+
+        async function guardarReprogramacion() {
+            const btn = document.getElementById("btn-save-repro");
+            btn.disabled = true;
+            const idMante = document.getElementById('repro_id').value;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/mantenimientos/${idMante}/reprogramar`, {
+                    method: 'PATCH',
+                    headers: AuthEngine.getAuthHeaders(),
+                    body: JSON.stringify({
+                        fecha_programada: document.getElementById('repro_nueva_fecha').value,
+                        observaciones_modificacion: document.getElementById('repro_observacion').value
+                    })
+                });
+                AuthEngine.verificarExpiracion(res);
+                if (res.ok) {
+                    alert("Reprogramación guardada correctamente");
+                    location.reload();
+                }
+            } catch (error) { console.error(error); } finally { btn.disabled = false; }
+        }
+
+        // ==========================================
+        // CALIBRACIONES
+        // ==========================================
+        async function cargarCalibraciones() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${equipoId}/calibraciones-pendientes`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(res);
+                const data = await res.json();
+                const tbody = document.getElementById('tabla-calibraciones');
+                tbody.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">Sin calibraciones programadas</td></tr>';
+                    return;
                 }
 
-                #voice-indicator.active .icon-on {
-                    display: block !important;
+                data.forEach(cal => {
+                    const esCompletado = cal.estado === "completado";
+                    const iconoCompletado = `<div style="background:#2e7d32;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:white;">✔</div>`;
+                    const botonesPendiente = `<button onclick="abrirModalEjecutarCal('${cal.id}')" style="background:none;border:none;cursor:pointer;font-size:1.2rem;" title="Finalizar">📝</button> <button onclick="abrirModalReprogramarCal('${cal.id}', '${cal.fecha_programada}')" style="background:none;border:none;cursor:pointer;font-size:1.2rem;margin-left:8px;" title="Reprogramar">📅</button>`;
+                    const linkCertificado = cal.certificado_url ? `<a href="${API_BASE_URL}${cal.certificado_url}" target="_blank" style="color:#243B8F;font-weight:bold;">📄 Ver Certificado</a>` : '<span style="color:#ccc;">Sin certificado</span>';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${cal.fecha_programada || '---'}</td>
+                            <td>${cal.proveedor || '---'}</td>
+                            <td><span class="status-badge" style="background:${esCompletado ? '#e8f5e9' : '#fff3e0'}; color:${esCompletado ? '#2e7d32' : '#ef6c00'};">${cal.estado}</span></td>
+                            <td>${linkCertificado}</td>
+                            <td style="text-align:center;">${esCompletado ? iconoCompletado : botonesPendiente}</td>
+                        </tr>`;
+                });
+            } catch (error) { console.error(error); }
+        }
+
+        async function guardarCalibracion() {
+            const btn = document.getElementById("btn-prog-cal");
+            btn.disabled = true;
+            const data = {
+                fecha_programada: document.getElementById('c_fecha').value,
+                proveedor: document.getElementById('c_proveedor').value,
+                estado: 'pendiente'
+            };
+
+            if (!data.fecha_programada || !data.proveedor) {
+                alert("Completa todos los campos");
+                btn.disabled = false;
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${equipoId}/calibraciones`, {
+                    method: 'POST',
+                    headers: AuthEngine.getAuthHeaders(),
+                    body: JSON.stringify(data)
+                });
+                AuthEngine.verificarExpiracion(res);
+                if (res.ok) {
+                    cerrarModal('modalCalibracion');
+                    await cargarCalibraciones();
+                    alert("Calibración programada con éxito");
+                }
+            } catch (error) { console.error(error); } finally { btn.disabled = false; }
+        }
+
+        async function enviarEjecucionCal() {
+            const btn = document.getElementById("btn-cerrar-cal");
+            btn.disabled = true;
+            const id = document.getElementById('exec_cal_id').value;
+            const formData = new FormData();
+            formData.append('fecha_realizada', document.getElementById('exec_cal_fecha').value);
+            formData.append('resultado', document.getElementById('exec_cal_resultado').value);
+            formData.append('observaciones', document.getElementById('exec_cal_obs').value);
+
+            const file = document.getElementById('exec_cal_archivo').files[0];
+            if (file) formData.append('certificado', file);
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/calibraciones/${id}/finalizar`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${AuthEngine.getToken()}` },
+                    body: formData
+                });
+                AuthEngine.verificarExpiracion(res);
+                if (res.ok) {
+                    alert("Calibración finalizada con éxito");
+                    cerrarModal('modalEjecutarCal');
+                    await cargarCalibraciones();
+                } else { alert("Error al guardar la calibración"); }
+            } catch (error) { console.error(error); } finally { btn.disabled = false; }
+        }
+
+        async function guardarReprogramacionCal() {
+            const btn = document.getElementById("btn-repro-cal");
+            btn.disabled = true;
+            const id = document.getElementById("repro_cal_id").value;
+            const nuevaFecha = document.getElementById("repro_cal_nueva_fecha").value;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/calibraciones/${id}/reprogramar`, {
+                    method: "PATCH",
+                    headers: AuthEngine.getAuthHeaders(),
+                    body: JSON.stringify({ fecha_programada: nuevaFecha, observaciones: document.getElementById("repro_cal_observacion").value })
+                });
+                AuthEngine.verificarExpiracion(res);
+                if (res.ok) {
+                    cerrarModal("modalReprogramarCal");
+                    await cargarCalibraciones();
+                    alert("✅ Calibración reprogramada correctamente");
+                }
+            } catch (error) { console.error(error); } finally { btn.disabled = false; }
+        }
+
+        // ==========================================
+        // APTITUD ISO
+        // ==========================================
+        async function cargarParametrosAptitud() {
+            if (!tipoEquipoNombre) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/pruebas-por-equipo/${tipoEquipoNombre}`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(res);
+                const pruebas = await res.json();
+                const cont = document.getElementById("lista-parametros");
+                if (!cont) return;
+                cont.innerHTML = "";
+                if (!pruebas || pruebas.length === 0) {
+                    cont.innerHTML = `<p style="color:#999;">No hay pruebas configuradas</p>`;
+                    return;
                 }
 
-                @keyframes pulseVoice {
-                    0% {
-                        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
-                    }
+                pruebas.forEach(p => {
+                    cont.innerHTML += `
+                        <div class="field" style="border:1px solid #eee;padding:10px;margin-bottom:10px;border-radius:8px;">
+                            <label><b>${p.nombre}</b></label>
+                            <input type="number" id="valor_${p.id}" placeholder="Valor obtenido" oninput="evaluarManual(${p.id})"/><br><br>
+                            <label>Tipo de criterio</label>
+                            <select id="tipo_${p.id}" onchange="evaluarManual(${p.id})">
+                                <option value="">Seleccionar</option>
+                                <option value="rango">Rango</option><option value="max">Máximo</option><option value="min">Mínimo</option><option value="igual">Igual a</option>
+                            </select><br><br>
+                            <input type="number" id="min_${p.id}" placeholder="Mínimo" oninput="evaluarManual(${p.id})"/>
+                            <input type="number" id="max_${p.id}" placeholder="Máximo" oninput="evaluarManual(${p.id})"/>
+                            <div id="resultado_${p.id}" style="font-weight:bold;margin-top:5px;"></div>
+                        </div>`;
+                });
+            } catch (e) { console.error(e); }
+        }
 
-                    70% {
-                        box-shadow: 0 0 0 15px rgba(231, 76, 60, 0);
-                    }
-
-                    100% {
-                        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
-                    }
+        async function cargarEvaluacionExistente() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/evaluacion-existente/${equipoId}`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(res);
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    renderChecklist(data);
+                    cambiarAModoChecklist();
                 }
-            </style>
+            } catch (e) { console.error(e); }
+        }
 
-            <script src="js/voice-engine.js"></script>
-            <script src="js/voice-detalle-equipo.js"></script>
+        async function guardarAptitud() {
+            const btn = document.getElementById("btn-guardar-aptitud");
+            btn.disabled = true;
+            const inputs = document.querySelectorAll('[id^="valor_"]');
+            const payload = { equipo_id: equipoId, responsable: localStorage.getItem('usuario_nombre') || "Operador", resultados: [] };
+
+            inputs.forEach(i => {
+                const id = i.id.replace("valor_", "");
+                const valor = parseFloat(document.getElementById(`valor_${id}`).value);
+                const tipo = document.getElementById(`tipo_${id}`).value;
+                const min = parseFloat(document.getElementById(`min_${id}`).value);
+                const max = parseFloat(document.getElementById(`max_${id}`).value);
+
+                if (!isNaN(valor)) {
+                    let cumple = false;
+                    if (tipo === "rango") cumple = valor >= min && valor <= max;
+                    if (tipo === "max") cumple = valor <= max;
+                    if (tipo === "min") cumple = valor >= min;
+                    if (tipo === "igual") cumple = valor === min;
+
+                    payload.resultados.push({
+                        prueba_id: parseInt(id), valor_obtenido: valor.toString(),
+                        criterio_aplicado: tipo, valor_min: isNaN(min) ? null : min, valor_max: isNaN(max) ? null : max, cumple: cumple
+                    });
+                }
+            });
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/evaluar-equipo`, {
+                    method: "POST",
+                    headers: AuthEngine.getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                AuthEngine.verificarExpiracion(res);
+                const data = await res.json();
+                renderChecklist(data.resultados);
+                cambiarAModoChecklist();
+                alert("Evaluación guardada ✅");
+            } catch (e) { console.error(e); } finally { btn.disabled = false; }
+        }
+
+        // ==========================================
+        // FALLAS Y UBICACIÓN
+        // ==========================================
+        async function cargarHistorialFallas(id) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${id}/fallas`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(res);
+                const fallas = await res.json();
+                const contenedor = document.getElementById('contenedor-historial-fallas');
+
+                if (!fallas || fallas.length === 0) {
+                    contenedor.innerHTML = "<p>No hay fallas registradas para este equipo.</p>";
+                    return;
+                }
+
+                contenedor.innerHTML = fallas.map(f => `
+                    <div style="border-left: 4px solid #ef4444; padding: 12px; margin-bottom: 10px; background: #fff5f5; border-radius: 0 8px 8px 0;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong style="color: #1C2C70;">${f.tipo.toUpperCase()}</strong>
+                            <span style="font-size: 12px; background: #fee2e2; padding: 2px 8px; border-radius: 4px;">${f.urgencia}</span>
+                        </div>
+                        <p style="margin: 8px 0; font-size: 14px;">${f.descripcion}</p>
+                        <small style="color: #64748b;">${new Date(f.fecha_reporte).toLocaleDateString()}</small>
+                    </div>`).join('');
+            } catch (error) { console.error(error); }
+        }
+
+        async function cargarUltimaUbicacion() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${equipoId}/historial-ubicaciones`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(res);
+                const historial = await res.json();
+
+                if (historial && historial.length > 0) {
+                    const ultima = historial[0];
+                    document.getElementById("ub-nombre").innerText = ultima.nombre_personalizado;
+                    document.getElementById("ub-dir").innerText = ultima.direccion_texto;
+                    document.getElementById("btn-llegar-container").innerHTML = `
+                        <a href="https://www.google.com/maps/search/?api=1&query=$${ultima.latitud},${ultima.longitud}"
+                           target="_blank" class="btn-save" style="text-decoration:none; display:inline-block; font-size:0.8rem; padding:8px 12px; background:#27ae60; margin-top:0;">
+                           🚗 Ver en Google Maps / Waze
+                        </a>`;
+                } else {
+                    document.getElementById("ub-nombre").innerText = "Sin ubicación registrada";
+                    document.getElementById("ub-dir").innerText = "N/A";
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // ==========================================
+        // GESTIÓN GENERAL FORMULARIO
+        // ==========================================
+        document.getElementById('detalleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("btn-guardar-general");
+            btn.disabled = true;
+
+            const estadoSeleccionado = document.getElementById('estado').value;
+            if (estadoSeleccionado === "En prestamo") {
+                sessionStorage.setItem('pending_ubicacion', document.getElementById('ubicacion').value);
+                window.location.href = `gestion-prestamo.html?id=${equipoId}`;
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('ubicacion', document.getElementById('ubicacion').value);
+            fd.append('responsable', document.getElementById('responsable').value);
+            fd.append('estado', estadoSeleccionado);
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${equipoId}`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${AuthEngine.getToken()}` }, // Content-Type lo calcula el navegador
+                    body: fd
+                });
+                AuthEngine.verificarExpiracion(res);
+                if (res.ok) {
+                    alert("✅ Cambios guardados y estado actualizado.");
+                    await cargarDetalle();
+                } else { alert("Error al actualizar los datos."); }
+            } catch (err) { console.error(err); } finally { btn.disabled = false; }
+        });
 
 
+        // Funciones Utilitarias Adicionales
+        function evaluarManual(id) {
+            const valor = parseFloat(document.getElementById(`valor_${id}`).value);
+            const tipo = document.getElementById(`tipo_${id}`).value;
+            const min = parseFloat(document.getElementById(`min_${id}`).value);
+            const max = parseFloat(document.getElementById(`max_${id}`).value);
+            const resultado = document.getElementById(`resultado_${id}`);
+
+            if (isNaN(valor) || !tipo) { resultado.innerHTML = ""; return; }
+            let cumple = false;
+            if (tipo === "rango" && !isNaN(min) && !isNaN(max)) cumple = valor >= min && valor <= max;
+            else if (tipo === "max" && !isNaN(max)) cumple = valor <= max;
+            else if (tipo === "min" && !isNaN(min)) cumple = valor >= min;
+            else if (tipo === "igual" && !isNaN(min)) cumple = valor === min;
+
+            resultado.innerHTML = cumple ? "✔️ Cumple" : "❌ No cumple";
+            resultado.style.color = cumple ? "green" : "red";
+        }
+
+        function cambiarAModoChecklist() {
+            document.getElementById("seccion-confirmacion").style.display = "none";
+            document.getElementById("seccion-checklist").style.display = "block";
+        }
+        function activarEdicion() {
+            document.getElementById("seccion-confirmacion").style.display = "block";
+            document.getElementById("seccion-checklist").style.display = "none";
+        }
+        function renderChecklist(resultados) {
+            const lista = document.getElementById("lista-resultados");
+            lista.innerHTML = "";
+            lista.style.display = "grid";
+            lista.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
+            lista.style.gap = "15px";
+            lista.style.marginTop = "15px";
+
+            resultados.forEach(r => {
+                const esCumple = r.cumple === "Cumple" || r.cumple === true;
+                lista.innerHTML += `
+                    <div style="background:#fff; border-left:5px solid ${esCumple ? '#2e7d32' : '#c62828'}; padding:15px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05); font-size:13px;">
+                        <div style="font-weight:bold; color:#243B8F; margin-bottom:5px;">${r.prueba_nombre}</div>
+                        <div style="color:#666;">Valor: <b>${r.valor_obtenido}</b></div>
+                        <div style="color:#888; font-size:11px; margin-bottom:8px;">Criterio: ${r.criterio_aplicado}</div>
+                        <span style="padding:3px 8px; border-radius:12px; background:${esCumple ? '#e8f5e9' : '#ffebee'}; color:${esCumple ? '#2e7d32' : '#c62828'}; font-size:11px; font-weight:bold;">
+                            ${esCumple ? '✔ CUMPLE' : '❌ NO CUMPLE'}
+                        </span>
+                    </div>`;
+            });
+        }
+
+        function abrirModalMantenimiento() { document.getElementById('modalProgramarMantenimiento').style.display = "flex"; }
+        function abrirEjecucion(idMant, tecnico, tipo) {
+            document.getElementById('edit_m_id').value = idMant;
+            document.getElementById('e_m_tecnico').value = tecnico;
+            document.getElementById('bloqueCorrectivo').style.display = tipo === "correctivo" ? "block" : "none";
+            document.getElementById('modalEjecutarMantenimiento').style.display = 'flex';
+        }
+        function abrirModalReprogramar(id, fecha) {
+            document.getElementById('repro_id').value = id;
+            document.getElementById('repro_nueva_fecha').value = fecha;
+            document.getElementById('modalReprogramar').style.display = 'flex';
+        }
+        function abrirModalCalibracion() { document.getElementById('modalCalibracion').style.display = "flex"; }
+        function abrirModalEjecutarCal(id) {
+            document.getElementById('exec_cal_id').value = id;
+            document.getElementById('modalEjecutarCal').style.display = 'flex';
+        }
+        function abrirModalReprogramarCal(id, fecha) {
+            document.getElementById("repro_cal_id").value = id;
+            document.getElementById("repro_cal_nueva_fecha").value = fecha || "";
+            document.getElementById("modalReprogramarCal").style.display = "flex";
+        }
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function controlarOpcionDevolucion(estadoActual) {
+            const select = document.getElementById("estado");
+            if (estadoActual !== "En prestamo") {
+                const opcion = Array.from(select.options).find(opt => opt.value === "Devolucion");
+                if (opcion) opcion.remove();
+            }
+        }
+        function handleCambioEstado(valor) {
+            if (valor === "Devolucion") window.location.href = `gestion-prestamo.html?id=${equipoId}&modo=regreso`;
+        }
+        function irARegistrarUbicacion() { window.location.href = `mapa-ubicacion.html?id=${equipoId}`; }
+        function irAHistorialUbicacion() { window.location.href = `mapa-ubicacion.html?id=${equipoId}&ver=historial`; }
+        function generarEtiquetaQR() { window.open(`etiqueta-qr.html?id=${equipoId}`, "_blank", "width=950,height=750"); }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            cargarDetalle();
+        });
+    </script>
 </body>
 
 </html>

@@ -4,6 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <title>Control de Movimiento de Activos - LabAsset 360</title>
+
+    <!-- 1. BLINDAJE JWT PRE-RENDER -->
+    <script>
+        (function () {
+            if (!localStorage.getItem("access_token")) {
+                window.location.replace("index.html");
+            }
+        })();
+    </script>
+
     <style>
         :root {
             --primary: #1C2C70;
@@ -168,6 +178,11 @@
             box-shadow: 0 4px 12px rgba(36, 59, 143, 0.3);
         }
 
+        .btn-action:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
         .footer-note {
             font-size: 0.75rem;
             color: #999;
@@ -237,7 +252,7 @@
             </div>
 
             <div style="margin-top: 30px;">
-                <button type="submit" class="btn-action">
+                <button type="submit" class="btn-action" id="btn-submit">
                     Confirmar Registro
                 </button>
             </div>
@@ -252,57 +267,83 @@
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         const modo = params.get('modo') || 'salida';
-        const API_URL = "https://labasset360.onrender.com";
+
+        // CONFIGURACIÓN DE API
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://127.0.0.1:8000'
+            : 'https://labasset360.onrender.com';
+
+        const AuthEngine = {
+            getToken() { return localStorage.getItem("access_token"); },
+            getAuthHeaders() {
+                return {
+                    'Authorization': `Bearer ${this.getToken()}`,
+                    'Content-Type': 'application/json'
+                };
+            },
+            verificarExpiracion(res) {
+                if (res.status === 401 || res.status === 403) {
+                    localStorage.clear();
+                    window.location.replace("index.html");
+                }
+            }
+        };
 
         async function inicializar() {
-            const resE = await fetch(`${API_URL}/api/equipos/${id}`);
-            const equipo = await resE.json();
+            try {
+                const resE = await fetch(`${API_BASE_URL}/api/equipos/${id}`, {
+                    headers: AuthEngine.getAuthHeaders()
+                });
+                AuthEngine.verificarExpiracion(resE);
+                const equipo = await resE.json();
 
-            document.getElementById('ast-codigo').innerText = equipo.codigo;
-            document.getElementById('ast-marca').innerText = `${equipo.marca} / ${equipo.modelo}`;
-            document.getElementById('ast-ubicacion').innerText = equipo.ubicacion;
+                document.getElementById('ast-codigo').innerText = equipo.codigo;
+                document.getElementById('ast-marca').innerText = `${equipo.marca} / ${equipo.modelo}`;
+                document.getElementById('ast-ubicacion').innerText = equipo.ubicacion;
 
-            if (modo === 'regreso') {
-                document.getElementById('subtitulo-modo').innerText = "Registro de Retorno Técnico";
-                document.getElementById('titulo-inspeccion').innerText = "Inspección de Recepción";
-                document.getElementById('columna-previa').style.display = 'block';
-                document.getElementById('columna-actual').style.gridColumn = 'span 1';
-                cargarDatosPrevios();
-            }
+                if (modo === 'regreso') {
+                    document.getElementById('subtitulo-modo').innerText = "Registro de Retorno Técnico";
+                    document.getElementById('titulo-inspeccion').innerText = "Inspección de Recepción";
+                    document.getElementById('columna-previa').style.display = 'block';
+                    document.getElementById('columna-actual').style.gridColumn = 'span 1';
+                    cargarDatosPrevios();
+                }
+            } catch (e) { console.error(e); }
         }
 
         async function cargarDatosPrevios() {
-            const res = await fetch(`${API_URL}/api/equipos/${id}/ultimo-prestamo`);
-            const p = await res.json();
-
-            if (!p || !p.condiciones_salida) return;
-
-            let textoFormateado = "";
-
-            const matchChecklist = p.condiciones_salida.match(/\[CHECKLIST:\s*(.*?)\]/);
-            const matchDetalle = p.condiciones_salida.match(/DETALLE:\s*(.*)/);
-
-            if (matchChecklist && matchChecklist[1]) {
-                const items = matchChecklist[1].split(',').map(i => i.trim());
-                items.forEach(item => {
-                    if (item) textoFormateado += item + " OK\n";
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/equipos/${id}/ultimo-prestamo`, {
+                    headers: AuthEngine.getAuthHeaders()
                 });
-            }
+                AuthEngine.verificarExpiracion(res);
+                const p = await res.json();
 
-            if (matchDetalle && matchDetalle[1]) {
-                textoFormateado += "\nDetalle:\n" + matchDetalle[1];
-            }
+                if (!p || !p.condiciones_salida) return;
 
-            document.getElementById('info-salida-previa').innerText = textoFormateado;
-            document.getElementById('resp-previo').innerText = p.responsable_prestamo;
-            document.getElementById('fecha-previo').innerText = p.fecha_salida;
+                let textoFormateado = "";
+                const matchChecklist = p.condiciones_salida.match(/\[CHECKLIST:\s*(.*?)\]/);
+                const matchDetalle = p.condiciones_salida.match(/DETALLE:\s*(.*)/);
 
-            document.getElementById('responsable').value = p.responsable_prestamo;
-            document.getElementById('responsable').disabled = true;
+                if (matchChecklist && matchChecklist[1]) {
+                    const items = matchChecklist[1].split(',').map(i => i.trim());
+                    items.forEach(item => { if (item) textoFormateado += item + " OK\n"; });
+                }
+
+                if (matchDetalle && matchDetalle[1]) textoFormateado += "\nDetalle:\n" + matchDetalle[1];
+
+                document.getElementById('info-salida-previa').innerText = textoFormateado;
+                document.getElementById('resp-previo').innerText = p.responsable_prestamo;
+                document.getElementById('fecha-previo').innerText = p.fecha_salida;
+                document.getElementById('responsable').value = p.responsable_prestamo;
+                document.getElementById('responsable').disabled = true;
+            } catch (e) { console.error(e); }
         }
 
         document.getElementById('formPrestamo').onsubmit = async (e) => {
             e.preventDefault();
+            const btn = document.getElementById("btn-submit");
+            btn.disabled = true;
 
             const responsable = document.getElementById('responsable').value.trim();
             const checks = Array.from(document.querySelectorAll('.check-item:checked')).map(c => c.value);
@@ -315,46 +356,49 @@
                 obs: observaciones
             };
 
-            const endpoint = modo === 'regreso'
-                ? '/api/prestamos/regresar'
-                : '/api/prestamos/salir';
+            const endpoint = modo === 'regreso' ? '/api/prestamos/regresar' : '/api/prestamos/salir';
 
-            const res = await fetch(`${API_URL}${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            try {
+                const res = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: AuthEngine.getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+                AuthEngine.verificarExpiracion(res);
 
-            if (res.ok) {
-                alert("Registro almacenado correctamente.");
-                window.location.href = `detalle-equipo.html?id=${id}`;
-            } else {
-                const error = await res.json();
-                alert("Error servidor:\n" + JSON.stringify(error, null, 2));
+                if (res.ok) {
+                    alert("Registro almacenado correctamente.");
+                    window.location.href = `detalle-equipo.html?id=${id}`;
+                } else {
+                    const error = await res.json();
+                    alert("Error servidor:\n" + JSON.stringify(error, null, 2));
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                btn.disabled = false;
             }
         };
 
         inicializar();
     </script>
+
+    <!-- Lógica de Voz (Reutilizada del ecosistema) -->
     <div id="voice-indicator"
         style="position: fixed; bottom: 30px; right: 30px; background: #243B8F; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 10000; transition: 0.3s;"
         onclick="VoiceEngine.toggle()">
-        <!-- Imagen por defecto (Desactivado) -->
         <img src="desactivado.png" class="icon-off" alt="Micrófono Desactivado"
             style="width: 110px; height: 110px; object-fit: contain;">
-        <!-- Imagen cuando está activo (Oculta por defecto) -->
         <img src="activado.png" class="icon-on" alt="Micrófono Activado"
             style="width: 110px; height: 110px; object-fit: contain; display: none;">
     </div>
 
     <style>
-        
         #voice-indicator.active {
             background: #e74c3c !important;
             animation: pulseVoice 1.5s infinite;
         }
 
-        /* Lógica para intercambiar los PNGs cuando el contenedor tiene la clase .active */
         #voice-indicator.active .icon-off {
             display: none !important;
         }
