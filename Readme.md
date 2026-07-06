@@ -15,11 +15,17 @@ LabAsset 360 es una solución integral diseñada para la gestión de equipos de 
 El sistema utiliza un esquema relacional para mantener la integridad de los activos y sus operaciones asociadas con las siguientes entidades:
 
 *Equipo:* Entidad central que almacena marca, modelo, serial, estado operativo e indice de salud
+
 *Mantenimiento:* Registra historial de mantenimientos preventivos/correctivos, tecnicos responsables y costos
+
 *Calibración:* Gestión de certificados, proveedores y fechas de calibración 
+
 *Prestamo:* Control de salidas y entradas de equipos incluyendo condiciones de entrega
+
 *Usuario:* Gestión de acceso y niveles de laboratorio
+
 *Falla:* Reportes de incidencias técnicas que afectan el indice de salud
+
 *Evaluación:* Registro de pruebas tecnicas y resultados de cumplimiento
 
 **Logica de Negocio y Algoritmos**
