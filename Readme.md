@@ -60,6 +60,14 @@ Se implementa un algoritmo que analice el comportamiento historico de las evalua
 
 Se integra los modelos entrenados directamente en la arquitectura actual de FastAPI desarrollando nuevos endpoints asincronos que recalculen las predicciones en tiempo real cada vez que un técnico de laboratorio registre una nueva lectura o una falla. 
 
+**Capturas del Aplicativo**
+
+![Dashboard de LabAsset 360](capturas/dashboard.png)
+
+![Equipos Registrados en LabAsset 360](capturas/equipos.png)
+
+![Indice de Salud de LabAsset 360](capturas/indice.png)
+
 
 
 
